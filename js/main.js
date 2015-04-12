@@ -4,8 +4,6 @@ function Game() {
 	camera = new Camera();
 	ui = new UI();
 
-	//world.generateWorld();
-
 	this.height = 600;
 	this.width = 1100;
 	width = 1100;
@@ -88,7 +86,7 @@ function Game() {
 
 	var update = function() {
 		world.enemies[0].checkPlayer(player.x, player.y, player.width, player.height);
-		world.update(player.x, player.y);
+		world.update(player.x, player.y, player);
 		player.update(world.enemies);
 		ui.update(player.hp);
 	}

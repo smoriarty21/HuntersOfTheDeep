@@ -15,7 +15,7 @@ function World() {
 
 	this.util = new Utils();
 
-	this.update = function(playerX, playerY) {
+	this.update = function(playerX, playerY, player) {
 		this.setVelocity(0,0);
 
 		if(this.status == 'STILL') {
@@ -41,7 +41,7 @@ function World() {
 
 		//Enemies
 		for(var i = 0; i < this.enemies.length; i++) {
-			this.enemies[i].update(playerX, playerY);
+			this.enemies[i].update(playerX, playerY, player);
 
 			this.enemies[i].x += this.velocity[0];
 			this.enemies[i].y += this.velocity[1];
