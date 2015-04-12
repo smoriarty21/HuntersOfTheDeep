@@ -30,14 +30,20 @@ var Player = function() {
 			if(this.bullets[i]['x'] > this.canvasWidth + this.x) {
 				this.bullets.splice(i);
 			}
-			console.log(enemies.length);
 
-			//for(var i = 0; i < enemies.length; i++) {
-				/*if(this.checkCollision(enemies[i].x, enemies[i].y, enemies[i].height, enemies[i].width, this.bullets[i]['x'], this.bullets[i]['y'], this.bullets[i]['height'], this.bullets[i]['width'])) {
-					console.log('hittttt');
-				}*/
-				//console.log(enemies.length);
-			//}
+			for(var j = 0; j < enemies.length; j++) {
+				var hit_enemy = this.checkCollision(this.bullets[i]['x'], this.bullets[i]['y'], this.bullets[i]['height'], this.bullets[i]['width'], enemies[j].x, enemies[j].y, enemies[j].height, enemies[j].width);
+
+				if(hit_enemy) {
+					this.bullets.splice(i);
+					
+					enemies[j].hp -= this.wep.damage;
+
+					if(enemies[j].hp <= 0) {
+						enemies.splice(j);
+					}	
+				}
+			}
 		}
 
 		if(this.status == 'STILL') {

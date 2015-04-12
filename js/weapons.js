@@ -18,6 +18,7 @@ var Weapon = function() {
 				this.width = 60;
 				this.ammo = -1;
 				this.color = '#AAAAFF'
+				this.damage = 10;
 				break;
 		}
 

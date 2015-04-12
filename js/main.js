@@ -85,7 +85,10 @@ function Game() {
 	}
 
 	var update = function() {
-		world.enemies[0].checkPlayer(player.x, player.y, player.width, player.height);
+		for(var i = 0; i < world.enemies.length; i++) {
+			world.enemies[i].checkPlayer(player.x, player.y, player.width, player.height);
+		}
+		
 		world.update(player.x, player.y, player);
 		player.update(world.enemies);
 		ui.update(player.hp);
