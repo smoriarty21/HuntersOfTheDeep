@@ -5,6 +5,7 @@ var Enemy = function() {
 	this.y = 250;
 	this.height = 40;
 	this.width = 110;
+	this.base_xp = 100;
 	this.velocity = [0, 0];
 	this.speed = 10;
 	this.worldWidth = 2200;

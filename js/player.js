@@ -11,11 +11,42 @@ var Player = function() {
 	this.canvasWidth = 1100;
 	this.direction = 'RIGHT';
 
+	//Player Stats
+	this.level = 1;
+	this.xp = 0;
+	this.xp_for_next_level = 100;
+	this.weapon_speed_bonus = 1;
+	this.weapon_dmg_bonus = 1;
+	this.sub_speed_bonus = 1;
+	this.hp_bonus = 1;
+	this.xp_bonus = 1;
+	this.treasure_bonus = 1;
+
 	this.weapon = new Weapon();
 	this.wep = this.weapon.generate('NORMAL');
 
 	this.set_health = function(dif) {
 		this.hp += dif;
+	}
+
+	this.add_exp = function(xp) {
+		this.xp += xp;
+
+		if(this.xp >= this.xp_for_next_level) {
+			this.level++;
+
+			this.weapon_dmg_bonus = 1;
+			this.hp_bonus = 1;
+
+			this.xp_for_next_level *= 5;
+
+			this.weapon_speed_bonus += 0.05;
+			this.weapon_dmg_bonus += 0.05;
+			this.sub_speed_bonus += 0.05;
+			this.hp_bonus += 0.05;
+			this.xp_bonus += 0.05;
+			this.treasure_bonus += 0.05;
+		}
 	}
 
 	this.get_health = function() {
@@ -40,6 +71,7 @@ var Player = function() {
 					enemies[j].hp -= this.wep.damage;
 
 					if(enemies[j].hp <= 0) {
+						this.add_exp(enemies[j].base_xp * this.xp_bonus)
 						enemies.splice(j);
 					}	
 				}

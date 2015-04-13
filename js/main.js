@@ -10,6 +10,8 @@ function Game() {
 	height = 600;
 	var status = 'PLAYING';
 
+	this.stats_menu_open = false;
+
 	context = document.getElementById('viewport').getContext("2d");
 
 	window.addEventListener('keydown', function(event) {
@@ -37,6 +39,12 @@ function Game() {
 	    			status = 'PLAYING';
 				}
 	    		break;
+	    	case 81:
+	    		if(!ui.stats_menu_open) {
+	    			ui.stats_menu_open = true;
+	    		} else {
+	    			ui.stats_menu_open = false;
+	    		}
 	    }
 	}, false);
 
@@ -88,10 +96,10 @@ function Game() {
 		for(var i = 0; i < world.enemies.length; i++) {
 			world.enemies[i].checkPlayer(player.x, player.y, player.width, player.height);
 		}
-		
+
 		world.update(player.x, player.y, player);
 		player.update(world.enemies);
-		ui.update(player.hp);
+		ui.update(player.hp, player);
 	}
 
 	var ONE_FRAME_TIME = 1000 / 30 ;
