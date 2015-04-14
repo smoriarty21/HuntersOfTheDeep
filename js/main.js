@@ -32,19 +32,24 @@ function Game() {
 	      		player.status = 'DOWN';
 	    		break;
 
-	    	case 27:
+	    	case 27:  //Esc
 	    		if (status == 'PLAYING') {
 	    			status = 'PAUSED';	
 	    		}else if(status == 'PAUSED') {
 	    			status = 'PLAYING';
 				}
 	    		break;
-	    	case 81:
+
+	    	case 81: //Stats Menu 
 	    		if(!ui.stats_menu_open) {
 	    			ui.stats_menu_open = true;
 	    		} else {
 	    			ui.stats_menu_open = false;
 	    		}
+
+	    	case 69: //Action Key
+	    		this.world.bounty_board.action_key_hit = true;
+	    		break;
 	    }
 	}, false);
 
@@ -67,7 +72,7 @@ function Game() {
 
 			world.draw(context);
 			player.draw(context);
-			ui.draw(context);
+			ui.draw(context, world.bounty_board);
 
 			var x = this.x;
 			var y = this.y

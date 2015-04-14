@@ -10,6 +10,7 @@ var Player = function() {
 	this.bullets = [];
 	this.canvasWidth = 1100;
 	this.direction = 'RIGHT';
+	this.gold = 0;
 
 	//Player Stats
 	this.level = 1;
@@ -24,6 +25,10 @@ var Player = function() {
 
 	this.weapon = new Weapon();
 	this.wep = this.weapon.generate('NORMAL');
+
+	//Bounties
+	this.bounty = new Bounty();
+	this.current_bounties = [];
 
 	this.set_health = function(dif) {
 		this.hp += dif;
@@ -54,6 +59,11 @@ var Player = function() {
 	}
 
 	this.update = function(enemies) {
+		//Bounties
+		if(!this.current_bounties.length) {
+			this.current_bounties.push(this.bounty.generate());
+		}
+
 		//Bullets
 		for(var i = 0; i < this.bullets.length; i++) {
 			this.bullets[i]['x'] += this.bullets[i]['speed'];
@@ -71,7 +81,7 @@ var Player = function() {
 					enemies[j].hp -= this.wep.damage;
 
 					if(enemies[j].hp <= 0) {
-						this.add_exp(enemies[j].base_xp * this.xp_bonus)
+						this.add_exp(enemies[j].base_xp * this.xp_bonus);
 						enemies.splice(j);
 					}	
 				}

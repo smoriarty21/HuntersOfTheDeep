@@ -7,6 +7,8 @@ function UI() {
 	this.stats_menu_open = false;
 
 	this.hpbar = new HpBar();
+
+	//TODO: Move stats to main to fix bug with layering
 	this.stats = new StatsMenu();
 
 	this.update = function(hp, player) {

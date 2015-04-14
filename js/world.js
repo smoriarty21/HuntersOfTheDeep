@@ -15,6 +15,9 @@ function World() {
 
 	this.util = new Utils();
 
+	//Town
+	this.bounty_board = new BountyBoard(this);
+
 	this.update = function(playerX, playerY, player) {
 		this.setVelocity(0,0);
 
@@ -39,6 +42,10 @@ function World() {
 			this.images[i]['y'] += this.velocity[1];
 		}
 
+		//Town
+		//TODO: Move this to UI in order to render on top of player
+		world.bounty_board.update(this.velocity[0], this.velocity[1], player);
+
 		//Enemies
 		for(var i = 0; i < this.enemies.length; i++) {
 			this.enemies[i].update(playerX, playerY, player);
@@ -57,6 +64,9 @@ function World() {
 		for(var i = 0; i < this.images.length; i++) {
 			context.drawImage(this.images[i]['image'], this.images[i]['x'], this.images[i]['y'], this.images[i]['width'], this.images[i]['height']);
 		}
+
+		//Town
+		this.bounty_board.draw(context);
 
 		//Enemies
 		for(var i = 0; i < this.enemies.length; i++) {
