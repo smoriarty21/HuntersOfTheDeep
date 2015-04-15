@@ -220,7 +220,7 @@ function World() {
 		player.y = 500;
 	}
 
-	this.generateWorld = function() {
+	this.generate_town = function() {
 		worldParts = [];
 
 		//background
@@ -339,12 +339,5 @@ function World() {
 				prevX = sand['x'];
 			}
 		}
-
-		//Enemies
-		var badGuy = new Enemy();
-		this.enemies.push(badGuy);
 	}
-
-	//this.generateWorld();
-	//this.generateDungeon(player);
 }

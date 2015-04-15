@@ -3,6 +3,9 @@ function UI() {
 	this.width = 1100;
 	this.x = 0;
 	this.y = 0;
+
+	this.show_fps = false;
+	this.fps = 0;
 	
 	this.stats_menu_open = false;
 
@@ -13,19 +16,31 @@ function UI() {
 
 	this.update = function(hp, player) {
 		this.hpbar.update(hp);
-		this.stats.update(player);	
+		this.stats.update(player);
+
+		if(this.show_fps) {
+			this.thisLoop = new Date;
+		    this.fps = 1000 / (this.thisLoop - this.lastLoop);
+		    this.lastLoop = this.thisLoop;
+		}	
 	}
 
 	this.draw = function(context) {
-		if(this.stats_menu_open) {
-			this.stats.draw(context);
-		}
-
 		context.fillStyle="#000000";
 		context.fillRect(this.hpbar.outerX, this.hpbar.outerY, this.hpbar.outerWidth, this.hpbar.outerHeight);
 
 		context.fillStyle="#FF0000";
 		context.fillRect(this.hpbar.x, this.hpbar.y, this.hpbar.width, this.hpbar.height);
+
+		if(this.stats_menu_open) {
+			this.stats.draw(context);
+		}
+
+		if(this.show_fps) {
+			context.font="900 20px Arial";
+			context.fillStyle="#FF0000";
+			context.fillText(Math.round(this.fps), 5, this.height - 5);
+		}
 	}
 }
 

@@ -5,7 +5,7 @@ function Game() {
 	ui = new UI();
 	crosshair = new MouseCursor();
 
-	world.generateWorld();
+	world.generate_town();
 
 	this.height = 600;
 	this.width = 1100;
@@ -53,6 +53,14 @@ function Game() {
 	    	case 69: //Action Key
 	    		this.world.bounty_board.action_key_hit = true;
 	    		break;
+
+	    	case 192: //Dev Console
+	    		if (!ui.show_fps) {
+	    			ui.show_fps = true
+	    		} else {
+	    			ui.show_fps = false;
+	    		}
+	    		break;
 	    }
 	}, false);
 
@@ -92,15 +100,11 @@ function Game() {
 			var y = this.y
 
 			var img = new Image();
-
 			img.height = this.height;
 			img.width = this.width;
-
-			img.onload = function () {
-			    context.drawImage(img, 0, 0, this.width, this.height);
-			}
-
 			img.src = "img/pause.png";
+
+			context.drawImage(img, 0, 0, this.width, this.height);
 		} else if(status == 'PLAYING') {
 			context.fillStyle = 'black';
 			context.fillRect(0, 0, 1100, 600);
