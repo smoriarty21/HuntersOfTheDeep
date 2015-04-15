@@ -1,7 +1,7 @@
 var Player = function() {
 	this.hp = 100;
-	this.x = 150;
-	this.y = 150;
+	this.x = 300;
+	this.y = 300;
 	this.height = 30;
 	this.width = 100;
 	this.velocity = [0, 0];

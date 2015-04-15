@@ -11,7 +11,6 @@ function UI() {
 
 	this.hpbar = new HpBar();
 
-	//TODO: Move stats to main to fix bug with layering
 	this.stats = new StatsMenu();
 
 	this.update = function(hp, player) {
@@ -40,6 +39,7 @@ function UI() {
 			context.font="900 20px Arial";
 			context.fillStyle="#FF0000";
 			context.fillText(Math.round(this.fps), 5, this.height - 5);
+			context.font="10px Arial";
 		}
 	}
 }
@@ -186,5 +186,80 @@ function StatsMenu() {
 		context.fillStyle="#FFFFFF";
 		context.fillText('Luck Bonus:', (this.x + this.padding), (this.y + this.padding) + (this.padding * it));
 		context.fillText(Math.round((this.treasure_bonus - 1) * 100) / 100, (this.x + (this.padding * 8)), (this.y + this.padding) + (this.padding * it));
+	}
+}
+
+//Title Menu
+function TitleScreen(screen_height, screen_width) {
+	this.height = screen_height;
+	this.width = screen_width;
+
+	this.x = 0;
+	this.y = 0;
+
+	this.image = new Image();
+	this.image.src = 'img/title-screen.png'
+
+	//Play Button
+	this.play_button_height = 50;
+	this.play_button_width = 100;
+
+	this.play_button_x = (this.width / 2) - (this.play_button_width / 2);
+	this.play_button_y = (this.height / 2) - (this.play_button_height / 2);
+
+	this.play_button_image = new Image();
+	this.play_button_image.src = 'img/play-btn.png';
+
+
+	this.draw = function(context) {
+		//Background
+		context.drawImage(this.image, this.x, this.y, this.width, this.height);
+
+		//Play Button
+		context.drawImage(this.play_button_image, this.play_button_x, this.play_button_y, this.play_button_width, this.play_button_height);
+	}
+}
+
+//Studio Splash
+function StudioCred(screen_height, screen_width) {
+	this.height = screen_height;
+	this.width = screen_width;
+
+	this.x = 0;
+	this.y = 0;
+
+	this.count = 0;
+
+	this.image = new Image();
+	this.image.src = 'img/logo.png'
+
+	this.update = function() {
+		if(this.count >= 120) {
+			return true;
+		} else {
+			this.count++;
+		}
+	}
+
+	this.draw = function(context) {
+		context.drawImage(this.image, this.x, this.y, this.width, this.height);
+	}
+}
+
+//Death screen
+function DeathScreen(screen_width, screen_height) {
+	this.height = screen_height;
+	this.width = screen_width;
+
+	this.x = 0;
+	this.y = 0;
+
+	this.image = new Image();
+	this.image.src = 'img/dead.png'
+
+
+	this.draw = function(context) {
+		console.log('in draw');
+		context.drawImage(this.image, this.x, this.y, this.width, this.height);
 	}
 }

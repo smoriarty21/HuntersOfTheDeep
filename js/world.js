@@ -12,6 +12,8 @@ function World() {
 	this.ground = [];
 	this.images = [];
 	this.enemies = [];
+	this.boss_fight = false;
+	this.boss_camera_set = false;
 
 	this.cell_height = 50;
 	this.cell_width = 50;
@@ -37,12 +39,38 @@ function World() {
 		}
 
 		//background
-		this.x += this.velocity[0];
-		this.y += this.velocity[1];
+		if(this.boss_fight && !this.boss_camera_set) {
+			this.velocity[0] = 50;
+			this.velocity[1] = 50;
 
-		for(var i = 0; i < this.images.length; i++) {
-			this.images[i]['x'] += this.velocity[0];
-			this.images[i]['y'] += this.velocity[1];
+			for(var i = 0; i < this.images.length; i++) {
+				if(!((this.width / 50) % i)) {
+					if(this.images[i]['x'] == -1100) {
+						this.velocity[0] = 0;
+					} 
+				}
+
+				if(this.images[0]['y'] >= -200) {
+					this.velocity[1] = 0;
+				}
+
+				this.images[i]['x'] -= this.velocity[0];
+				this.images[i]['y'] += this.velocity[1];
+			}
+
+			this.x += this.velocity[0];
+			this.y += this.velocity[1];
+		} else if(this.boss_fight && this.boss_camera_set) {
+			this.velocity[0] = 0;
+			this.velocity[1] = 0;
+		} else {
+			for(var i = 0; i < this.images.length; i++) {
+				this.images[i]['x'] += this.velocity[0];
+				this.images[i]['y'] += this.velocity[1];
+			}
+
+			this.x += this.velocity[0];
+			this.y += this.velocity[1];
 		}
 
 		//Town
@@ -63,6 +91,8 @@ function World() {
 					this.images[i]['trap_door'] = false;
 					this.images[i]['collision'] = true;
 					this.images[i]['image'].src = 'img/sand.jpg';
+
+					this.boss_fight = true;
 				}
 			}
 		}
@@ -189,10 +219,10 @@ function World() {
 				} else if(i == this.width - 50) {
 					dungeon_part['image'].src = 'img/sand.jpg';
 					dungeon_part['collision'] = true;
-				} else if(j < 300) {
+				} else if(j < 200) {
 					dungeon_part['image'].src = 'img/sand.jpg';
 					dungeon_part['collision'] = true;
-				} else if( j > (this.height / 2) + 200) {
+				} else if( j > (this.height / 2) + 100) {
 					dungeon_part['image'].src = 'img/sand.jpg';
 					dungeon_part['collision'] = true;
 				} else {
@@ -206,7 +236,7 @@ function World() {
 		this.images = cave_walls;
 
 		//Enemies
-		var rng = this.util.random(5);
+		/*var rng = this.util.random(5);
 
 		for(var i = 0; i < rng; i++) {
 			var badGuy = new Enemy();
@@ -215,7 +245,7 @@ function World() {
 			var  bottom_range = this.height - 300;
 			badGuy.y = this.util.random(bottom_range - 300) + 300;
 			this.enemies.push(badGuy);
-		}
+		}*/
 	
 		player.y = 500;
 	}
@@ -230,8 +260,12 @@ function World() {
 			bkg = {};
 			bkg['x'] = lastX;
 			bkg['y'] = 0;
+
 			bkg['height'] = 50;
 			bkg['width'] = 50;
+
+			bkg['collision'] = true;
+
 			bkg['image'] = new Image();
 			bkg['image'].src = 'img/water-top.jpg';
 
@@ -247,8 +281,10 @@ function World() {
 				bkg = {};
 				bkg['x'] = lastX;
 				bkg['y'] = lastY;
+
 				bkg['height'] = 50;
 				bkg['width'] = 50;
+
 				bkg['image'] = new Image();
 				bkg['image'].src = 'img/water.jpg';
 
@@ -267,13 +303,13 @@ function World() {
 			var sand = {};
 			sand['x'] = lastX;
 			sand['y'] = this.height - 50;
+
 			sand['height'] = 50;
 			sand['width'] = 50;
+
+			sand['collision'] = true;
+
 			sand['image'] = new Image();
-			sand['image'].height = 50;
-			sand['image'].width = 50;
-			sand['image'].x = this.x;
-			sand['image'].y = this.y;
 			sand['image'].src = 'img/sand.jpg';
 
 			this.images.push(sand);

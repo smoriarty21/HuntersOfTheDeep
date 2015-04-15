@@ -1,17 +1,22 @@
 function Game() {
+	this.height = 600;
+	this.width = 1100;
+
+	width = 1100;
+	height = 600;
+
+	var status = 'START';
+
+	this.snap_y = false;
+	this.snap_x = false;
+
 	player = new Player();
-	world = new World(player);
 	camera = new Camera();
 	ui = new UI();
 	crosshair = new MouseCursor();
-
-	world.generate_town();
-
-	this.height = 600;
-	this.width = 1100;
-	width = 1100;
-	height = 600;
-	var status = 'PLAYING';
+	title = new TitleScreen(this.height, this.width);
+	death_screen = new DeathScreen(this.width, this.height);
+	sofa_king = new StudioCred(this.height, this.width);
 
 	this.stats_menu_open = false;
 
@@ -20,19 +25,27 @@ function Game() {
 	window.addEventListener('keydown', function(event) {
 		switch (event.keyCode) {
 	    	case 65: // Left
-	      		player.status = 'LEFT';
+	    		if (status == 'PLAYING') {
+	      			player.status = 'LEFT';
+	      		}
 	    		break;
 
 	    	case 87: // Up
-	      		player.status = 'UP';
+	      		if (status == 'PLAYING') {
+	      			player.status = 'UP';
+	      		}
 	    		break;
 
 	    	case 68: // Right
-	      		player.status = 'RIGHT';
+	      		if (status == 'PLAYING') {
+	      			player.status = 'RIGHT';
+	      		}
 	    		break;
 
 	    	case 83: // Down
-	      		player.status = 'DOWN';
+	      		if (status == 'PLAYING') {
+	      			player.status = 'DOWN';
+	      		}
 	    		break;
 
 	    	case 27:  //Esc
@@ -40,6 +53,8 @@ function Game() {
 	    			status = 'PAUSED';	
 	    		}else if(status == 'PAUSED') {
 	    			status = 'PLAYING';
+				} else if(status == 'START') {
+					sofa_king.count = 1000;
 				}
 	    		break;
 
@@ -67,14 +82,23 @@ function Game() {
 	window.addEventListener('mousedown', function(event) {
 		switch (event.button) {
 	    	case 0: // Shoot
-	    		if(!this.world.bounty_board.menu_open) {
-	    			player.shoot();	
-	    		} else if(this.world.bounty_board.menu_open) {
-	    			if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width, this.world.bounty_board.x - 130, this.world.bounty_board.y - 175, 175, 400)) {
-	    				world = new World(player);
-	    				world.generateDungeon(player);
-	    			}
-	    		}
+	    		if(status == 'PLAYING') {
+		    		if(!this.world.bounty_board.menu_open) {
+		    			player.shoot();	
+		    		} else if(this.world.bounty_board.menu_open) {
+		    			if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width, this.world.bounty_board.x - 130, this.world.bounty_board.y - 175, 175, 400)) {
+		    				world = new World(player);
+		    				world.generateDungeon(player);
+		    			}
+		    		}
+		    	} else if(status == 'TITLE') {
+		    		if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width, title.play_button_x, title.play_button_y, title.play_button_height, title.play_button_width)) {
+		    			world = new World(player);
+		    			world.generate_town();
+
+		    			status = 'PLAYING';
+		    		}
+		    	}
 	    		break;
 	    }
 	}, false);
@@ -113,6 +137,15 @@ function Game() {
 			player.draw(context);
 			ui.draw(context);
 			crosshair.draw(context);
+		} else if(status == 'TITLE') {
+			title.draw(context);
+			crosshair.draw(context);
+		} else if(status == 'DEAD') {
+			world.draw(context);
+			player.draw(context);
+			death_screen.draw(context);
+		} else if(status == 'START') {
+			sofa_king.draw(context);
 		}
 	}
 
@@ -120,36 +153,88 @@ function Game() {
 		for(var i = 0; i < world.enemies.length; i++) {
 			world.enemies[i].checkPlayer(player.x, player.y, player.width, player.height);
 		}
-		
+
 		world.update(player.x, player.y, player);
 		player.update(world.enemies, world);
 		ui.update(player.hp, player);
+
+		//Player Health
+		if(player.hp <= 0) {
+			status = 'DEAD';
+		}
 	}
 
-	var ONE_FRAME_TIME = 1000 / 20 ;
+	this.checkCollision = function(x1, y1, h1, w1, x2, y2, h2, w2) {
+		if(x2 + w2 > x1 && x2 < x1 + w1 && y2 + h2 > y1 && y2 < y1 + h1) {
+			this.playerInRange = true;
+			return true;
+		} else {
+			this.playerInRange = false;
+			return false;
+		}
+	}
+
+	var ONE_FRAME_TIME = 1000 / 35 ;
 
 	this.mainloop = function() {
 		if(status == 'PLAYING') {
 			if(player.x + player.width >= camera.rect['width'] + camera.rect['x']) {
-				player.status = 'RIGHTWALL';
-				world.status = 'RIGHT';
+				if(this.snap_x != 'RIGHT') {
+					player.status = 'RIGHTWALL';
+					world.status = 'RIGHT';
+				}
 			} else if(player.x <= camera.rect['x']) {
-				player.status = 'LEFTWALL';
-				world.status = 'LEFT';
+				if(this.snap_x != 'LEFT') {
+					player.status = 'LEFTWALL';
+					world.status = 'LEFT';
+				}
 			} else if(player.y <= camera.rect['y']) {
-				player.status = 'TOPWALL';
-				world.status = 'UP';
+				if(this.snap_y != 'TOP') {
+					player.status = 'TOPWALL';
+					world.status = 'UP';
+				}
 			} else if(player.y + player.height >= camera.rect['height'] + camera.rect['y']) {
-				player.status = 'BOTTOMWALL';
-				world.status = 'DOWN';
+				if(this.snap_y != 'BOTTOM') {
+					player.status = 'BOTTOMWALL';
+					world.status = 'DOWN';
+				}
 			} else {
 				world.status = 'STILL';
+			}
+
+			if(world.y == 0) {
+				this.snap_y = 'TOP';
+			} else if(world.y == -this.height) {
+				this.snap_y = 'BOTTOM';
+			} else {
+				this.snap_y = false;
+			}
+
+			if(world.x == 0) {
+				this.snap_x = 'LEFT';
+			} else if(world.x == -this.width) {
+				this.snap_x = 'RIGHT';
+			} else {
+				this.snap_x = false;
 			}
 
 			update();
 			draw();
 		} else if(status == 'PAUSED') {
 			draw();
+		} else if(status == 'TITLE') {
+			draw();
+		} else if(status == 'DEAD') {
+			player.y += 2;
+
+			update();
+			draw();
+		} else if(status == 'START') {
+			if(sofa_king.update()) {
+				status = 'TITLE';
+			} else {
+				draw();
+			}
 		}
     };
 

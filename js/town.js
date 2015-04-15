@@ -1,6 +1,6 @@
 var BountyBoard = function(world) {
-	this.height = 150;
-	this.width = 125;
+	this.height = 100;
+	this.width = 75;
 	this.x = 600;
 	this.y = world.height - (this.height + 25);
 	this.action_padding = 120;
