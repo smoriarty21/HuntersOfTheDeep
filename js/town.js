@@ -17,8 +17,11 @@ var BountyBoard = function(world) {
 		this.player_in_range = this.checkPlayerInRange(player.x, player.y, player.height, player.width, this.x - this.action_padding, this.y - this.action_padding, this.height + (this.action_padding * 2), this.width + (this.action_padding * 2));
 		this.current_bounties = player.current_bounties;
 
-		if(this.player_in_range && this.action_key_hit) {
+		if(this.player_in_range && this.action_key_hit && !this.menu_open) {
 			this.menu_open = true;
+			this.action_key_hit = false;
+		} else if(this.action_key_hit && this.menu_open) {
+			this.menu_open = false;
 			this.action_key_hit = false;
 		}
 
@@ -48,14 +51,14 @@ var BountyBoard = function(world) {
 
 			context.fillStyle="#FFFFFF";
 			context.fillText('Boss', this.x  - 120, this.y - 160);
-			context.fillText('Description', this.x - 60, this.y - 160);
+			context.fillText('Description', this.x - 50, this.y - 160);
 			context.fillText('Experience', this.x + 80 , this.y - 160);
 
 			var spacer = '--------------------------------------------------------------------------------------';
 			context.fillText(spacer, this.x  - 120, this.y - 150);
 
 			context.fillText(this.current_bounties[0]['boss'], this.x  - 118, this.y - 135);
-			context.fillText(this.current_bounties[0]['desc'], this.x - 60, this.y - 135);
+			context.fillText(this.current_bounties[0]['desc'], this.x - 50, this.y - 135);
 			context.fillText(this.current_bounties[0]['xp'] + 'XP', this.x + 80 , this.y - 135);
 		}
 	}

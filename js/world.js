@@ -13,6 +13,9 @@ function World() {
 	this.images = [];
 	this.enemies = [];
 
+	this.cell_height = 50;
+	this.cell_width = 50;
+
 	this.util = new Utils();
 
 	//Town
@@ -72,6 +75,88 @@ function World() {
 		for(var i = 0; i < this.enemies.length; i++) {
 			context.drawImage(this.enemies[i].image, this.enemies[i].x, this.enemies[i].y, this.enemies[i].width, this.enemies[i].height);
 		}
+	}
+
+	//World Generators
+	this.generateDungeon = function() {
+		cave_walls = [];
+		cave_water = [];
+		
+		rng = this.util.random(3);
+		bot_rng = this.util.random(5);
+		
+		for(var i = 0 ; i < this.width; i += 50) {
+			change_rng = this.util.random(5);
+			bot_change_rng = this.util.random(5);
+			
+			if(change_rng == 1) {
+				rng_shift = this.util.random(2);
+				rng_direct = this.util.random(2);
+				
+				if(rng_direct == 1) {
+					rng += rng_shift;
+				} else {
+					rng -= rng_shift;
+				}
+			} else if(change_rng == 2) {
+				rng++;
+			} else if(change_rng == 3 && rng >= this.cell_padding * 2) {
+				rng--;
+			} else if(change_rng == 5) {
+				rng += 2;
+			} else if(change_rng == 5 && rng >= this.cell_padding * 3) {
+				if(rng > 2) {
+					rng -= 2;
+				} else {
+					rng -= 1;
+				}
+			}
+
+			if(rng < 1) {
+				rng += 1;
+			} else if (rng > 5) {
+				rng -= 2;
+			}
+			
+			if(bot_change_rng == 1) {
+				bot_rng = this.util.random(2);
+			} else if(change_rng == 2) {
+				bot_rng++;
+			} else if(bot_change_rng == 3 && bot_rng >= this.cell_padding * 2) {
+				bot_rng--;
+			} else if(bot_change_rng == 5) {
+				bot_rng += 2;
+			} else if(bot_change_rng == 5 && bot_rng >= this.cell_padding * 3) {
+				bot_rng -= 2;
+			}
+			
+			if(bot_rng < 1) {
+				bot_rng += 1;
+			} else if (bot_rng > 5) {
+				bot_rng -= 1;
+			}
+		
+			for(var j = 0; j < this.height; j += 50) {
+				dungeon_part = {};
+				dungeon_part['x'] = i;
+				dungeon_part['y'] = j;
+				dungeon_part['height'] = 50;
+				dungeon_part['width'] = 50;
+				dungeon_part['image'] = new Image();
+					
+				if(j < (rng * this.cell_height)  || j >= this.height - (this.cell_height * bot_rng)) {
+					dungeon_part['image'].src = 'img/sand.jpg';
+					dungeon_part['collision'] = true;
+				} else {
+					dungeon_part['image'].src = 'img/water.jpg';
+					dungeon_part['collision'] = false;
+				}
+				
+				cave_walls.push(dungeon_part);
+			}
+		}
+		
+		this.images = cave_walls;
 	}
 
 	this.generateWorld = function() {
@@ -199,5 +284,6 @@ function World() {
 		this.enemies.push(badGuy);
 	}
 
-	this.generateWorld();
+	//this.generateWorld();
+	this.generateDungeon();
 }

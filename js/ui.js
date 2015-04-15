@@ -3,7 +3,7 @@ function UI() {
 	this.width = 1100;
 	this.x = 0;
 	this.y = 0;
-
+	
 	this.stats_menu_open = false;
 
 	this.hpbar = new HpBar();

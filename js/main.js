@@ -56,7 +56,9 @@ function Game() {
 	window.addEventListener('mousedown', function(event) {
 		switch (event.button) {
 	    	case 0: // Shoot
-	      		player.shoot();
+	    		if(!this.world.bounty_board.menu_open) {
+	    			player.shoot();	
+	    		}
 	    		break;
 	    }
 	}, false);
@@ -101,13 +103,13 @@ function Game() {
 		for(var i = 0; i < world.enemies.length; i++) {
 			world.enemies[i].checkPlayer(player.x, player.y, player.width, player.height);
 		}
-
+		
 		world.update(player.x, player.y, player);
-		player.update(world.enemies);
+		player.update(world.enemies, world);
 		ui.update(player.hp, player);
 	}
 
-	var ONE_FRAME_TIME = 1000 / 30 ;
+	var ONE_FRAME_TIME = 1000 / 20 ;
 
 	this.mainloop = function() {
 		if(status == 'PLAYING') {

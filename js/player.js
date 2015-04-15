@@ -12,6 +12,8 @@ var Player = function() {
 	this.direction = 'RIGHT';
 	this.gold = 0;
 
+	this.collision = 'NONE';
+
 	//Player Stats
 	this.level = 1;
 	this.xp = 0;
@@ -58,7 +60,7 @@ var Player = function() {
 		return this.hp;
 	}
 
-	this.update = function(enemies) {
+	this.update = function(enemies, world) {
 		//Bounties
 		if(!this.current_bounties.length) {
 			this.current_bounties.push(this.bounty.generate());
@@ -118,33 +120,34 @@ var Player = function() {
 			this.status = 'STILL';
 		}
 
+		//World Collision
+		world_collision = this.checkWorldCollision(world);
+		
+		if(world_collision == 'TOP') {
+			this.velocity[1] = this.speed;
+		} else if(world_collision == 'BOTTOM') {
+			this.velocity[1] = -this.speed;
+		} else if(world_collision == 'RIGHT') {
+			this.velocity[0] = -this.speed;
+		} else if(world_collision == 'LEFT') {
+			this.velocity[0] = this.speed;
+		}
+
+
 		this.x += this.velocity[0];
 		this.y += this.velocity[1];
 	}
 
 	this.draw = function(context) {
-		var x = this.x;
-		var y = this.y
-		var direction = this.direction;
-
 		var img = new Image();
-
-		img.height = this.height;
-		img.width = this.width;
-
-		img.onload = function () {
-			if(direction == 'RIGHT') {
-				img.src = "img/sub-r.png";
-
-				context.drawImage(img, x, y, this.width, this.height);
-			} else if(direction == 'LEFT') {
-				img.src = "img/sub-l.png";
-
-				context.drawImage(img, x, y, this.width, this.height);
-			} 
+		
+		if(this.direction == 'RIGHT') {
+			img.src = "img/sub-r.png";
+		} else if(this.direction == 'LEFT') {
+			img.src = "img/sub-l.png";
 		}
-
-		img.src = "img/sub-r.png";
+		
+		context.drawImage(img, this.x, this.y, this.width, this.height);
 
 		//Bullets
 		for(var i = 0; i < this.bullets.length; i++) {
@@ -180,10 +183,46 @@ var Player = function() {
 		this.bullets.push(bullet);
 	}
 
-	this.checkCollision = function(x1, y1, h1, w1, x2, y2, h2, w2) {
+	this.checkWorldCollision = function(world) {
+		var collisions = [];
+
+		for(var i = 0; i < world.images.length; i++) {
+			if(world.images[i]['collision']) {
+				if(world.images[i]['x'] > this.x - 200 && world.images[i]['x'] < this.x + this.width + 200) {
+					var collided = this.checkCollision(this.x, this.y, this.height, this.width, world.images[i]['x'], world.images[i]['y'], world.images[i]['height'], world.images[i]['width'], 1);
+					collisions.push(collided);
+				}
+			}
+		}
+		
+		for(var j = 0; j < collisions.length; j++) {
+			if(collisions[j]) {
+				return collisions[j];
+			}
+		}
+	}
+
+	this.checkCollision = function(x1, y1, h1, w1, x2, y2, h2, w2, set_check_variable) {
 		if(x2 + w2 > x1 && x2 < x1 + w1 && y2 + h2 > y1 && y2 < y1 + h1) {
-			return true;
+			//if(set_check_variable) {
+				if(y1 > y2 + h2 - 25 && y1 < y2 + h2) {
+					console.log('t');
+					return 'TOP';
+				} else if(y1 + h1 > y2 - 25 && y1 + h1 < y2 + 25) {
+					console.log('b');
+					return 'BOTTOM';
+				} else if(x1 + w1 > x2 - 25 && x1 + w1 < x2 + 25) {
+					console.log('r');
+					return 'RIGHT';
+				} else if(x1 > x2 + w2 - 25 && x1 < x2 + w2 + 25) {
+					console.log('l');
+					return 'LEFT';
+				}
+			//}
+			//return true;
 		} else {
+			//this.collision = 'NONE';
+
 			return false;
 		}
 	}
