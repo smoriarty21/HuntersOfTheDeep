@@ -11,7 +11,7 @@ var Player = function() {
 	this.canvasWidth = 1100;
 	this.direction = 'RIGHT';
 	this.gold = 0;
-
+	this.remove_enemies = []
 	this.collision = 'NONE';
 
 	//Player Stats
@@ -84,10 +84,16 @@ var Player = function() {
 
 					if(enemies[j].hp <= 0) {
 						this.add_exp(enemies[j].base_xp * this.xp_bonus);
-						enemies.splice(j);
+						this.remove_enemies.push(j);
+						break;
 					}	
 				}
 			}
+
+			for(var i = 0; i < this.remove_enemies.length; i++) {
+				enemies.splice(this.remove_enemies[i]);
+			}
+			this.remove_enemies = [];
 		}
 
 		if(this.status == 'STILL') {
@@ -206,16 +212,12 @@ var Player = function() {
 		if(x2 + w2 > x1 && x2 < x1 + w1 && y2 + h2 > y1 && y2 < y1 + h1) {
 			//if(set_check_variable) {
 				if(y1 > y2 + h2 - 25 && y1 < y2 + h2) {
-					console.log('t');
 					return 'TOP';
 				} else if(y1 + h1 > y2 - 25 && y1 + h1 < y2 + 25) {
-					console.log('b');
 					return 'BOTTOM';
 				} else if(x1 + w1 > x2 - 25 && x1 + w1 < x2 + 25) {
-					console.log('r');
 					return 'RIGHT';
 				} else if(x1 > x2 + w2 - 25 && x1 < x2 + w2 + 25) {
-					console.log('l');
 					return 'LEFT';
 				}
 			//}

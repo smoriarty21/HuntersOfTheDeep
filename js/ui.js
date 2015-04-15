@@ -54,6 +54,34 @@ function HpBar() {
 	}
 }
 
+function MouseCursor() {
+	this.height = 10;
+	this.width = 10;
+
+	this.x = 0;
+	this.y = 0;
+
+	this.color = '#801515';
+
+	this.update = function(mouse_x, mouse_y) {
+		this.x = mouse_x;
+		this.y = mouse_y;
+	}
+
+	this.draw = function(context) {
+		context.fillStyle = this.color;
+		context.fillRect(this.x, this.y, this.width, this.height);
+	}
+
+	this.checkCollision = function(x1, y1, h1, w1, x2, y2, h2, w2) {
+		if(x2 + w2 > x1 && x2 < x1 + w1 && y2 + h2 > y1 && y2 < y1 + h1) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+}
+
 function StatsMenu() {
 	this.height = 500;
 	this.width = 300;

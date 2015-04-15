@@ -1,8 +1,11 @@
 function Game() {
 	player = new Player();
-	world = new World();
+	world = new World(player);
 	camera = new Camera();
 	ui = new UI();
+	crosshair = new MouseCursor();
+
+	world.generateWorld();
 
 	this.height = 600;
 	this.width = 1100;
@@ -58,9 +61,18 @@ function Game() {
 	    	case 0: // Shoot
 	    		if(!this.world.bounty_board.menu_open) {
 	    			player.shoot();	
+	    		} else if(this.world.bounty_board.menu_open) {
+	    			if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width, this.world.bounty_board.x - 130, this.world.bounty_board.y - 175, 175, 400)) {
+	    				world = new World(player);
+	    				world.generateDungeon(player);
+	    			}
 	    		}
 	    		break;
 	    }
+	}, false);
+
+	window.addEventListener('mousemove', function(event) {
+		crosshair.update(event.x, event.y);
 	}, false);
 
 	window.addEventListener('keyup', function(event) {
@@ -96,6 +108,7 @@ function Game() {
 			world.draw(context);
 			player.draw(context);
 			ui.draw(context);
+			crosshair.draw(context);
 		}
 	}
 

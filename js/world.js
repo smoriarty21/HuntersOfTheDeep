@@ -46,7 +46,6 @@ function World() {
 		}
 
 		//Town
-		//TODO: Move this to UI in order to render on top of player
 		world.bounty_board.update(this.velocity[0], this.velocity[1], player);
 
 		//Enemies
@@ -55,6 +54,17 @@ function World() {
 
 			this.enemies[i].x += this.velocity[0];
 			this.enemies[i].y += this.velocity[1];
+		}
+
+		//Trap Doors
+		for(var i = 0; i < this.images.length; i++) {
+			if(this.images[i]['trap_door']) {
+				if(player.x > this.images[i]['x'] + this.images[i]['width']) {
+					this.images[i]['trap_door'] = false;
+					this.images[i]['collision'] = true;
+					this.images[i]['image'].src = 'img/sand.jpg';
+				}
+			}
 		}
 	}
 
@@ -78,14 +88,15 @@ function World() {
 	}
 
 	//World Generators
-	this.generateDungeon = function() {
+	this.generateDungeon = function(player) {
+		var boss_area_size = 1150;
 		cave_walls = [];
 		cave_water = [];
 		
 		rng = this.util.random(3);
 		bot_rng = this.util.random(5);
 		
-		for(var i = 0 ; i < this.width; i += 50) {
+		for(var i = 0 ; i < this.width -  boss_area_size; i += 50) {
 			change_rng = this.util.random(5);
 			bot_change_rng = this.util.random(5);
 			
@@ -155,8 +166,58 @@ function World() {
 				cave_walls.push(dungeon_part);
 			}
 		}
+
+		//Boss Area
+		for(var i = this.width -  boss_area_size; i < this.width; i += 50) {
+			for(var j = 0; j < this.height; j += 50) {
+				dungeon_part = {};
+				dungeon_part['x'] = i;
+				dungeon_part['y'] = j;
+				dungeon_part['height'] = 50;
+				dungeon_part['width'] = 50;
+				dungeon_part['image'] = new Image();
+
+				if(i == this.width -  boss_area_size + 50) {
+					if(j >= (this.height / 2) - 100 && j < (this.height / 2) + 100) {
+						dungeon_part['image'].src = 'img/water.jpg';
+						dungeon_part['collision'] = false;
+						dungeon_part['trap_door'] = true;
+					} else {
+						dungeon_part['image'].src = 'img/sand.jpg';
+						dungeon_part['collision'] = true;
+					}
+				} else if(i == this.width - 50) {
+					dungeon_part['image'].src = 'img/sand.jpg';
+					dungeon_part['collision'] = true;
+				} else if(j < 300) {
+					dungeon_part['image'].src = 'img/sand.jpg';
+					dungeon_part['collision'] = true;
+				} else if( j > (this.height / 2) + 200) {
+					dungeon_part['image'].src = 'img/sand.jpg';
+					dungeon_part['collision'] = true;
+				} else {
+					dungeon_part['image'].src = 'img/water.jpg';
+					dungeon_part['collision'] = false;
+				}
+				cave_walls.push(dungeon_part);
+			}
+		}
 		
 		this.images = cave_walls;
+
+		//Enemies
+		var rng = this.util.random(5);
+
+		for(var i = 0; i < rng; i++) {
+			var badGuy = new Enemy();
+			badGuy.x = this.util.random(this.width - 400) + 1000;
+
+			var  bottom_range = this.height - 300;
+			badGuy.y = this.util.random(bottom_range - 300) + 300;
+			this.enemies.push(badGuy);
+		}
+	
+		player.y = 500;
 	}
 
 	this.generateWorld = function() {
@@ -285,5 +346,5 @@ function World() {
 	}
 
 	//this.generateWorld();
-	this.generateDungeon();
+	//this.generateDungeon(player);
 }
