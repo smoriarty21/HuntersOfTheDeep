@@ -22,9 +22,13 @@ function Game() {
 	world.generateDungeon(player);
 
 	this.stats_menu_open = false;
+	
+	//Music
+	this.music_playing = false;
 
 	context = document.getElementById('viewport').getContext("2d");
 
+	//Keyboard Key Down Event Handlers
 	window.addEventListener('keydown', function(event) {
 		switch (event.keyCode) {
 	    	case 65: // Left
@@ -82,6 +86,46 @@ function Game() {
 	    }
 	}, false);
 
+	//Keyboard Key Up Event Handlers
+	window.addEventListener('keyup', function(event) {
+		switch (event.keyCode) {
+	    	case 65: // Left
+	    		if (status == 'PLAYING') {
+	      			player.motion['LEFT'] = 0;
+	      			player.velocity[0] = 0;
+	      		}
+	    		break;
+
+	    	case 87: // Up
+	      		if (status == 'PLAYING') {
+	      			player.motion['UP'] = 0;
+	      			player.velocity[1] = 0;
+	      		}
+	    		break;
+
+	    	case 68: // Right
+	      		if (status == 'PLAYING') {
+	      			player.motion['RIGHT'] = 0;
+	      			player.velocity[0] = 0;
+	      		}
+	    		break;
+
+	    	case 83: // Down
+	      		if (status == 'PLAYING') {
+	      			player.motion['DOWN'] = 0;
+	      			player.velocity[1] = 0;
+	      		}
+	    		break;
+	    }
+		player.status = 'STILL';
+	});
+
+	//Disable Right Mouse Click Default Menu
+	window.addEventListener('contextmenu', function(event) {
+		event.preventDefault();
+	});
+
+	//Mouse Click Event Handlers
 	window.addEventListener('mousedown', function(event) {
 		switch (event.button) {
 	    	case 0: // Shoot
@@ -103,41 +147,16 @@ function Game() {
 		    		}
 		    	}
 	    		break;
+
+	    	case 2:
+	    		break;
 	    }
 	}, false);
 
+	//Mouse Movement Event Handlers
 	window.addEventListener('mousemove', function(event) {
 		crosshair.update(event.x, event.y);
 	}, false);
-
-	window.addEventListener('keyup', function(event) {
-		switch (event.keyCode) {
-	    	case 65: // Left
-	    		if (status == 'PLAYING') {
-	      			player.motion['LEFT'] = 0
-	      		}
-	    		break;
-
-	    	case 87: // Up
-	      		if (status == 'PLAYING') {
-	      			player.motion['UP'] = 0;
-	      		}
-	    		break;
-
-	    	case 68: // Right
-	      		if (status == 'PLAYING') {
-	      			player.motion['RIGHT'] = 0;
-	      		}
-	    		break;
-
-	    	case 83: // Down
-	      		if (status == 'PLAYING') {
-	      			player.motion['DOWN'] = 0;
-	      		}
-	    		break;
-	    }
-		player.status = 'STILL';
-	});
 	
 	var draw = function() {
 		if(status == 'PAUSED') {
@@ -205,7 +224,42 @@ function Game() {
 	var ONE_FRAME_TIME = 1000 / 35 ;
 
 	this.mainloop = function() {
+		//Allow player to move past camera move points
+		//when camera is walled
+		if(world.y == 0) {
+			this.snap_y = 'TOP';
+		} else if(world.y == -this.height) {
+			this.snap_y = 'BOTTOM';
+		} else {
+			this.snap_y = false;
+		}
+
+		if(world.x == 0) {
+			this.snap_x = 'LEFT';
+		} else if(world.x == -this.width) {
+			this.snap_x = 'RIGHT';
+		} else {
+			this.snap_x = false;
+		}
+
+		if(world.boss_fight_ready) {
+			this.snap_x = 'ALL';
+			this.snap_y = 'ALL';
+		}
+
+		//Move camera if player hits padding
 		if(status == 'PLAYING') {
+			//Music
+			if(!this.music_playing) {
+				this.game_music = new Audio('audio/theme.mp3');
+				this.game_music.volume = .0;
+				this.game_music.load();
+				this.game_music.play();
+
+				this.music_playing = true;
+			}
+
+			//Player collision with camera edges
 			if(player.x + player.width >= camera.rect['width'] + camera.rect['x']) {
 				if(this.snap_x != 'RIGHT' && this.snap_x != 'ALL') {
 					player.status = 'RIGHTWALL';
@@ -217,38 +271,17 @@ function Game() {
 					world.status = 'LEFT';
 				}
 			} else if(player.y <= camera.rect['y']) {
-				if(this.snap_y != 'TOP' && this.snap_x != 'ALL') {
+				if(this.snap_y != 'TOP' && this.snap_y != 'ALL') {
 					player.status = 'TOPWALL';
 					world.status = 'UP';
 				}
 			} else if(player.y + player.height >= camera.rect['height'] + camera.rect['y']) {
-				if(this.snap_y != 'BOTTOM' && this.snap_x != 'ALL') {
+				if(this.snap_y != 'BOTTOM' && this.snap_y != 'ALL' && player.status != 'STILL') {
 					player.status = 'BOTTOMWALL';
 					world.status = 'DOWN';
 				}
 			} else {
 				world.status = 'STILL';
-			}
-
-			if(world.y == 0) {
-				this.snap_y = 'TOP';
-			} else if(world.y == -this.height) {
-				this.snap_y = 'BOTTOM';
-			} else {
-				this.snap_y = false;
-			}
-
-			if(world.x == 0) {
-				this.snap_x = 'LEFT';
-			} else if(world.x == -this.width) {
-				this.snap_x = 'RIGHT';
-			} else {
-				this.snap_x = false;
-			}
-
-			if(world.boss_fight_ready) {
-				this.snap_x = 'ALL';
-				this.snap_y = 'ALL';
 			}
 
 			update();
@@ -258,6 +291,7 @@ function Game() {
 		} else if(status == 'TITLE') {
 			draw();
 		} else if(status == 'DEAD') {
+			//Sink that ship
 			player.y += 2;
 
 			update();

@@ -1,16 +1,25 @@
 var Enemy = function() {
 	this.status = 'HUNTING';
+	this.type = '';
+
 	this.hp = 20;
+
 	this.x = 700;
 	this.y = 250;
+
 	this.height = 20;
 	this.width = 70;
+	this.worldWidth = 200;
+	this.worldHeight = 1200;
+
 	this.base_xp = 100;
+
 	this.velocity = [0, 0];
 	this.speed = 10;
-	this.worldWidth = 2200;
-	this.worldHeight = 1200;
+	
 	this.count = 0;
+
+	//TODO: REMOVE THIS SHIT!
 	this.playerHeight = 50;
 	this.damage = 5;
 
@@ -24,14 +33,49 @@ var Enemy = function() {
 	this.direction = 'LEFT';
 
 	this.image = new Image();
-	this.image.src = 'img/shark.png';
 
 	this.playerInRange = false;
 
-	this.weapon = new Weapon();
-	this.wep = this.weapon.generate('NORMAL');
-
 	this.utils = new Utils();
+
+	this.generate = function(enemy_type) {
+		switch(enemy_type) {
+			case 'SHARK':
+				this.status = 'HUNTING';
+				this.type = 'SHARK';
+				this.hp = 20;
+				this.x = 700;
+				this.y = 250;
+				this.height = 20;
+				this.width = 70;
+				this.base_xp = 100;
+				this.velocity = [0, 0];
+				this.speed = 2;
+				this.worldWidth = 2000;
+				this.worldHeight = 1200;
+				this.count = 0;
+				this.playerHeight = 50;
+				this.damage = 5;
+
+				this.viewRange = 100;
+
+				//Attack AI Variables
+				this.direction_switched = false;
+				this.backed_distance = 0;
+				this.attack_status = null;
+
+				this.direction = 'LEFT';
+
+				this.image = new Image();
+				this.image.src = 'img/shark.png';
+
+				this.playerInRange = false;
+
+				break;
+		}
+
+		return this;
+	}
 
 	this.set_health = function(dif) {
 		this.hp += dif;
@@ -42,126 +86,140 @@ var Enemy = function() {
 	}
 
 	this.update = function(playerX, playerY, player) {
-		if(this.direction == 'RIGHT') {
-			this.image.src = 'img/shark-r.png';
-		} else {
-			this.image.src = 'img/shark.png';
-		}
-
-		if(this.status == 'HUNTING') {
-			var rng = this.utils.random(100);
-
-			if(rng == 100) {
-				this.velocity[1] = -(this.speed / 4);
-			} else if(rng == 1) {
-				this.velocity[1] = this.speed / 4;
-			}
-
-			if(this.y < 0) {
-				this.velocity[1] = this.speed / 4;
-			} else if((this.y + this.height) + (playerY + this.playerHeight) > this.worldHeight - 100) {
-				this.velocity[1] = -(this.speed / 4);
-			}
-
-			if(this.x + playerX < 0 && this.direction == 'LEFT') {
-				this.direction = 'RIGHT';
-			} else if (this.x + this.width + playerX > (this.worldWidth) && this.direction == 'RIGHT') {
-				this.direction = 'LEFT';
-			}
-
-			if(this.direction == 'LEFT') {
-				this.velocity[0] = -this.speed;
+		if(this.type == 'SHARK') {
+			if(this.direction == 'RIGHT') {
+				this.image.src = 'img/shark-r.png';
 			} else {
-				this.velocity[0] = this.speed;
+				this.image.src = 'img/shark.png';
 			}
 
-			var rng = this.utils.random(25); 
+			if(this.status == 'HUNTING') {
+				var rng = this.utils.random(100);
 
-			if(rng == 1) {
-				this.velocity[1] = 0;
-			}
-
-			//Check if player in range
-			if(this.direction == 'LEFT') {
-				if(this.x + this.width > playerX && playerX + 175 > this.x - this.viewRange) {
-					if(playerY < this.y + this.height + (this.viewRange * 2) && playerY + 50 > this.y - (this.viewRange * 2)) {
-						this.status = 'ATTACK';
-						this.attack_status = 'BACK';
-					}	
-				} 
-			} else if(this.direction == 'RIGHT') {
-				if(this.x + this.width + this.viewRange > playerX && this.x < playerX + 175) {
-					if(playerY < this.y + this.height + (this.viewRange * 2) && playerY + 50 > this.y - (this.viewRange * 2)) {
-						this.status = 'ATTACK';
-						this.attack_status = 'BACK';
-					}		
-				}
-			}
-		} else if(this.status == 'ATTACK') {
-			if(this.attack_status == 'BACK') {
-				this.damage_done = false;
-				if(this.direction == 'LEFT' && !this.direction_switched) {
-					this.direction = 'RIGHT'
-					this.velocity[0] = this.speed * 4;
-
-					this.direction_switched = true;
-				} else if(this.direction == 'RIGHT' && !this.direction_switched) {
-					this.direction = 'LEFT'
-					this.velocity[0] = -this.speed * 4;
-
-					this.direction_switched = true;
+				if(rng == 100) {
+					this.velocity[1] = -(this.speed / 4);
+				} else if(rng == 1) {
+					this.velocity[1] = this.speed / 4;
 				}
 
-				if(this.backed_distance > 300 + this.width) {
-					this.backed_distance = 0;
-					this.direction_switched = false;
-					this.attack_status = 'CHARGE';
+				if(this.y < 0) {
+					this.velocity[1] = this.speed / 4;
+				} else if((this.y + this.height) + (playerY + this.playerHeight) > this.worldHeight - 100) {
+					this.velocity[1] = -(this.speed / 4);
 				}
 
-				this.backed_distance += this.speed * 4;
-			} else if(this.attack_status == 'CHARGE') {
-				this.velocity[0] = 0;
-				this.velocity[1] = 0;
-
-				if(this.direction == 'RIGHT' && !this.direction_switched) {
-					this.direction = 'LEFT';
-					this.direction_switched = true;
-				} else if(this.direction == 'LEFT' && !this.direction_switched) {
+				if(this.x + playerX < 0 && this.direction == 'LEFT') {
 					this.direction = 'RIGHT';
-					this.direction_switched = true;
+				} else if (this.x + this.width + playerX > (this.worldWidth) && this.direction == 'RIGHT') {
+					this.direction = 'LEFT';
 				}
 
-				if(playerX + 170  < this.x) {
-					this.velocity[0] = -(this.speed * 1.5);
-				} else if(playerX + 10 > this.x + this.width) {
-					this.velocity[0] = this.speed * 1.5;
+				if(this.direction == 'LEFT') {
+					this.velocity[0] = -this.speed;
 				} else {
-					this.velocity[0] = 0;
+					this.velocity[0] = this.speed;
 				}
 
-				if(playerY + this.speed < this.y) {
-					this.velocity[1] = -this.speed;
-				} else if(playerY > this.y + this.speed) {
-					this.velocity[1] = this.speed;
-				} else {
+				var rng = this.utils.random(25); 
+
+				if(rng == 1) {
 					this.velocity[1] = 0;
 				}
 
-				//Check if attack landed
-				var hit_player = this.checkCollision(playerX, playerY, 50, 175, this.x, this.y, this.height, this.width);
-				
-				if(hit_player) {
-					player.set_health(-this.damage);
+				//Check if player in range
+				if(this.direction == 'LEFT') {
+					if(this.x + this.width > playerX && playerX + 175 > this.x - this.viewRange) {
+						if(playerY < this.y + this.height + (this.viewRange * 2) && playerY + 50 > this.y - (this.viewRange * 2)) {
+							this.status = 'ATTACK';
+							this.attack_status = 'BACK';
+						}	
+					} 
+				} else if(this.direction == 'RIGHT') {
+					if(this.x + this.width + this.viewRange > playerX && this.x < playerX + 175) {
+						if(playerY < this.y + this.height + (this.viewRange * 2) && playerY + 50 > this.y - (this.viewRange * 2)) {
+							this.status = 'ATTACK';
+							this.attack_status = 'BACK';
+						}		
+					}
+				}
+			} else if(this.status == 'ATTACK') {
+				if(this.attack_status == 'BACK') {
+					this.damage_done = false;
+					if(this.direction == 'LEFT' && !this.direction_switched) {
+						this.direction = 'RIGHT'
+						this.velocity[0] = this.speed * 4;
 
-					this.backed_distance = 0;
-					this.direction_switched = false;
-					this.attack_status = 'BACK';
+						this.direction_switched = true;
+					} else if(this.direction == 'RIGHT' && !this.direction_switched) {
+						this.direction = 'LEFT'
+						this.velocity[0] = -this.speed * 4;
+
+						this.direction_switched = true;
+					}
+
+					if(this.backed_distance > 300 + this.width) {
+						this.backed_distance = 0;
+						this.direction_switched = false;
+						this.attack_status = 'CHARGE';
+					}
+
+					this.backed_distance += this.speed * 4;
+				} else if(this.attack_status == 'CHARGE') {
+					this.velocity[0] = 0;
+					this.velocity[1] = 0;
+
+					if(this.direction == 'RIGHT' && !this.direction_switched) {
+						this.direction = 'LEFT';
+						this.direction_switched = true;
+					} else if(this.direction == 'LEFT' && !this.direction_switched) {
+						this.direction = 'RIGHT';
+						this.direction_switched = true;
+					}
+
+					if(playerX + 170  < this.x) {
+						this.velocity[0] = -(this.speed * 1.5);
+					} else if(playerX + 10 > this.x + this.width) {
+						this.velocity[0] = this.speed * 1.5;
+					} else {
+						this.velocity[0] = 0;
+					}
+
+					if(playerY + this.speed < this.y) {
+						this.velocity[1] = -this.speed;
+					} else if(playerY > this.y + this.speed) {
+						this.velocity[1] = this.speed;
+					} else {
+						this.velocity[1] = 0;
+					}
+
+					//Check if attack landed
+					var hit_player = this.checkCollision(playerX, playerY, 50, 175, this.x, this.y, this.height, this.width);
+					
+					if(hit_player) {
+						player.set_health(-this.damage);
+
+						this.backed_distance = 0;
+						this.direction_switched = false;
+						this.attack_status = 'BACK';
+					}
 				}
 			}
+			this.x += this.velocity[0];
+			this.y += this.velocity[1];
+		}
+		if(this.velocity[0] > 4) {
+			this.velocity[0] = 4;
+		} else if(this.velocity[0] < -4) {
+			this.velocity[0] = -4;
 		}
 
-		this.x += this.velocity[0];
-		this.y += this.velocity[1];
+		if(this.velocity[1] > 4) {
+			this.velocity[1] = 4;
+		} else if(this.velocity[1] < -4) {
+			this.velocity[1] = -4;
+		}
+		//this.x += this.velocity[0];
+		//this.y += this.velocity[1];
 	}
 
 	this.draw = function(context) {

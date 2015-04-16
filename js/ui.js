@@ -259,7 +259,6 @@ function DeathScreen(screen_width, screen_height) {
 
 
 	this.draw = function(context) {
-		console.log('in draw');
 		context.drawImage(this.image, this.x, this.y, this.width, this.height);
 	}
 }

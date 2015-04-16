@@ -23,12 +23,12 @@ function World() {
 	this.cell_width = 50;
 
 	this.util = new Utils();
+	this.enemy_generator = new Enemy();
 
 	//Town
 	this.bounty_board = new BountyBoard(this);
 
 	this.update = function(playerX, playerY, player) {
-		console.log(this.velocity[1]);
 		this.setVelocity(0,0);
 
 		if(this.status == 'STILL') {
@@ -40,7 +40,6 @@ function World() {
 		} else if(this.status == 'UP') {
 			if(this.y < 0) { this.setVelocity(0, this.speed); }
 		} else if(this.status == 'DOWN') {
-			console.log('DOWN');
 			if(this.y + this.height > this.canvasHeight) { this.setVelocity(0, -this.speed); }
 		}
 
@@ -260,16 +259,16 @@ function World() {
 		this.images = cave_walls;
 
 		//Enemies
-		/*var rng = this.util.random(5);
+		var rng = this.util.random(5);
 
 		for(var i = 0; i < rng; i++) {
-			var badGuy = new Enemy();
-			badGuy.x = this.util.random(this.width - 400) + 1000;
+			var badGuy = this.enemy_generator.generate('SHARK');
+			badGuy.x = this.util.random(this.width - 400) + 2000;
 
 			var  bottom_range = this.height - 300;
 			badGuy.y = this.util.random(bottom_range - 300) + 300;
 			this.enemies.push(badGuy);
-		}*/
+		}
 	
 		player.y = 500;
 		player.setVelocity(0,0);
