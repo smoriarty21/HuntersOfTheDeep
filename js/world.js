@@ -3,7 +3,7 @@ function World() {
 	this.y = 0;
 	this.velocity = [0, 0];
 	this.height = 1200;
-	this.width = 2200;
+	this.width = 2000;
 	this.status = 'STILL';
 	this.canvasHeight = 600;
 	this.canvasWidth = 1100;
@@ -12,8 +12,12 @@ function World() {
 	this.ground = [];
 	this.images = [];
 	this.enemies = [];
+
 	this.boss_fight = false;
-	this.boss_camera_set = false;
+	this.boss_x_in_place = false;
+	this.boss_y_in_place = false;
+	this.boss_fight_ready = false;
+	this.boss_roof_indexes = [];
 
 	this.cell_height = 50;
 	this.cell_width = 50;
@@ -24,6 +28,7 @@ function World() {
 	this.bounty_board = new BountyBoard(this);
 
 	this.update = function(playerX, playerY, player) {
+		console.log(this.velocity[1]);
 		this.setVelocity(0,0);
 
 		if(this.status == 'STILL') {
@@ -35,27 +40,44 @@ function World() {
 		} else if(this.status == 'UP') {
 			if(this.y < 0) { this.setVelocity(0, this.speed); }
 		} else if(this.status == 'DOWN') {
+			console.log('DOWN');
 			if(this.y + this.height > this.canvasHeight) { this.setVelocity(0, -this.speed); }
 		}
 
 		//background
 		if(this.boss_fight && !this.boss_camera_set) {
-			this.velocity[0] = 50;
-			this.velocity[1] = 50;
+			//Find roof height
+			var max_roof_height = 0;
+
+			for(var i = 0; i < this.boss_roof_indexes.length; i++) {
+				if(this.boss_roof_indexes[i] > max_roof_height) {
+					max_roof_height = this.boss_roof_indexes[i];
+				}
+			}
+
+			this.velocity[0] = 5;
+			this.velocity[1] = 5;
 
 			for(var i = 0; i < this.images.length; i++) {
+
 				if(!((this.width / 50) % i)) {
-					if(this.images[i]['x'] == -1100) {
+					if(this.images[i]['x'] <= -(this.width - this.canvasWidth)) {
 						this.velocity[0] = 0;
+						this.boss_x_in_place = true;
 					} 
 				}
 
-				if(this.images[0]['y'] >= -200) {
+				if(this.images[0]['y'] >= -max_roof_height) {
 					this.velocity[1] = 0;
+					this.boss_y_in_place = true;
 				}
 
 				this.images[i]['x'] -= this.velocity[0];
 				this.images[i]['y'] += this.velocity[1];
+			}
+
+			if(this.boss_y_in_place && this.boss_x_in_place) {
+				this.boss_fight_ready = true;
 			}
 
 			this.x += this.velocity[0];
@@ -222,6 +244,8 @@ function World() {
 				} else if(j < 200) {
 					dungeon_part['image'].src = 'img/sand.jpg';
 					dungeon_part['collision'] = true;
+
+					this.boss_roof_indexes.push(j);
 				} else if( j > (this.height / 2) + 100) {
 					dungeon_part['image'].src = 'img/sand.jpg';
 					dungeon_part['collision'] = true;
@@ -248,6 +272,7 @@ function World() {
 		}*/
 	
 		player.y = 500;
+		player.setVelocity(0,0);
 	}
 
 	this.generate_town = function() {

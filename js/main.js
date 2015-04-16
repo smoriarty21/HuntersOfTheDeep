@@ -5,7 +5,7 @@ function Game() {
 	width = 1100;
 	height = 600;
 
-	var status = 'START';
+	var status = 'PLAYING';
 
 	this.snap_y = false;
 	this.snap_x = false;
@@ -17,6 +17,9 @@ function Game() {
 	title = new TitleScreen(this.height, this.width);
 	death_screen = new DeathScreen(this.width, this.height);
 	sofa_king = new StudioCred(this.height, this.width);
+
+	world = new World();
+	world.generateDungeon(player);
 
 	this.stats_menu_open = false;
 
@@ -108,6 +111,31 @@ function Game() {
 	}, false);
 
 	window.addEventListener('keyup', function(event) {
+		switch (event.keyCode) {
+	    	case 65: // Left
+	    		if (status == 'PLAYING') {
+	      			player.motion['LEFT'] = 0
+	      		}
+	    		break;
+
+	    	case 87: // Up
+	      		if (status == 'PLAYING') {
+	      			player.motion['UP'] = 0;
+	      		}
+	    		break;
+
+	    	case 68: // Right
+	      		if (status == 'PLAYING') {
+	      			player.motion['RIGHT'] = 0;
+	      		}
+	    		break;
+
+	    	case 83: // Down
+	      		if (status == 'PLAYING') {
+	      			player.motion['DOWN'] = 0;
+	      		}
+	    		break;
+	    }
 		player.status = 'STILL';
 	});
 	
@@ -179,22 +207,22 @@ function Game() {
 	this.mainloop = function() {
 		if(status == 'PLAYING') {
 			if(player.x + player.width >= camera.rect['width'] + camera.rect['x']) {
-				if(this.snap_x != 'RIGHT') {
+				if(this.snap_x != 'RIGHT' && this.snap_x != 'ALL') {
 					player.status = 'RIGHTWALL';
 					world.status = 'RIGHT';
 				}
 			} else if(player.x <= camera.rect['x']) {
-				if(this.snap_x != 'LEFT') {
+				if(this.snap_x != 'LEFT' && this.snap_x != 'ALL') {
 					player.status = 'LEFTWALL';
 					world.status = 'LEFT';
 				}
 			} else if(player.y <= camera.rect['y']) {
-				if(this.snap_y != 'TOP') {
+				if(this.snap_y != 'TOP' && this.snap_x != 'ALL') {
 					player.status = 'TOPWALL';
 					world.status = 'UP';
 				}
 			} else if(player.y + player.height >= camera.rect['height'] + camera.rect['y']) {
-				if(this.snap_y != 'BOTTOM') {
+				if(this.snap_y != 'BOTTOM' && this.snap_x != 'ALL') {
 					player.status = 'BOTTOMWALL';
 					world.status = 'DOWN';
 				}
@@ -216,6 +244,11 @@ function Game() {
 				this.snap_x = 'RIGHT';
 			} else {
 				this.snap_x = false;
+			}
+
+			if(world.boss_fight_ready) {
+				this.snap_x = 'ALL';
+				this.snap_y = 'ALL';
 			}
 
 			update();

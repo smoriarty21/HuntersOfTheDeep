@@ -14,6 +14,13 @@ var Player = function() {
 	this.remove_enemies = []
 	this.collision = 'NONE';
 
+	this.motion = {
+		'LEFT': 0,
+		'RIGHT': 0,
+		'UP': 0,
+		'DOWN': 0
+	};
+
 	//Player Stats
 	this.level = 1;
 	this.xp = 0;
@@ -101,13 +108,17 @@ var Player = function() {
 		} else if(this.status == 'RIGHT') {
 			this.direction = 'RIGHT';
 			this.setVelocity(this.speed,0);
+			this.motion['RIGHT'] = 1;
 		} else if(this.status == 'LEFT') {
 			this.direction = 'LEFT';
 			this.setVelocity(-this.speed,0);
+			this.motion['LEFT'] = 1;
 		} else if(this.status == 'UP') {
 			this.setVelocity(0,-this.speed);
+			this.motion['UP'] = 1;
 		} else if(this.status == 'DOWN') {
 			this.setVelocity(0,this.speed);
+			this.motion['DOWN'];
 		} else if(this.status == 'TOPWALL') {
 			this.setVelocity(0,0);
 			this.y += 1;
@@ -139,6 +150,21 @@ var Player = function() {
 			this.velocity[0] = this.speed;
 		}
 
+		//Check for entering boss fight
+		if(!world.boss_fight_ready) {
+			if(world.boss_fight && !world.boss_camera_set) {
+				this.velocity[0] = -5;
+				this.velocity[1] = -5;
+			}
+
+			if(world.boss_x_in_place && !world.boss_fight_ready) {
+				this.velocity[0] = 0;
+			}
+
+			if(world.boss_y_in_place && !world.boss_fight_ready) {
+				this.velocity[1] = 0;
+			}
+		}
 
 		this.x += this.velocity[0];
 		this.y += this.velocity[1];
