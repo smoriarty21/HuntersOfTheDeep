@@ -43,7 +43,7 @@ function World() {
 			if(this.y + this.height > this.canvasHeight) { this.setVelocity(0, -this.speed); }
 		}
 
-		//background
+		//Set Camera For Boss Fight
 		if(this.boss_fight && !this.boss_camera_set) {
 			//Find roof height
 			var max_roof_height = 0;
@@ -81,9 +81,23 @@ function World() {
 
 			this.x += this.velocity[0];
 			this.y += this.velocity[1];
+
+			for(var x = 0; x < this.enemies.length; x++) {
+				this.enemies[x].x -= this.velocity[0] * 2;
+				this.enemies[x].y += this.velocity[1];
+			}
 		} else if(this.boss_fight && this.boss_camera_set) {
 			this.velocity[0] = 0;
 			this.velocity[1] = 0;
+			console.log('1');
+
+			for(var i = 0; i < this.enemies.length; i++) {
+				console.log('in');
+				if(this.enemies[i].boss) {
+					console.log('done');
+					this.enemies[i].status = 'BEAM';
+				}
+			}
 		} else {
 			for(var i = 0; i < this.images.length; i++) {
 				this.images[i]['x'] += this.velocity[0];
@@ -262,8 +276,9 @@ function World() {
 		var rng = this.util.random(5);
 
 		for(var i = 0; i < rng; i++) {
+			this.enemy_generator = new Enemy();
 			var badGuy = this.enemy_generator.generate('SHARK');
-			badGuy.x = this.util.random(this.width - 400) + 2000;
+			badGuy.x = this.util.random(this.width - 400) + 400;
 
 			var  bottom_range = this.height - 300;
 			badGuy.y = this.util.random(bottom_range - 300) + 300;
@@ -272,6 +287,13 @@ function World() {
 	
 		player.y = 500;
 		player.setVelocity(0,0);
+
+		this.enemy_generator = new Enemy();
+		var boss = this.enemy_generator.generate('WORM');
+		boss.x = 1700;
+		boss.y = 220;
+
+		this.enemies.push(boss);
 	}
 
 	this.generate_town = function() {

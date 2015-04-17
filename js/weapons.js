@@ -11,11 +11,11 @@ var Weapon = function() {
 	this.generate = function(type) {
 		switch(type) {
 			case 'NORMAL':
-				this.speed = 20;
+				this.speed = 30;
 				this.velocity[0] = this.speed;
 				this.velocity[1] = 0;
 				this.height = 10;
-				this.width = 60;
+				this.width = 20;
 				this.ammo = -1;
 				this.color = '#AAAAFF'
 				this.damage = 10;

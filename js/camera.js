@@ -3,7 +3,7 @@ var Camera = function() {
 	this.width = 1100;
 	this.x = 0;
 	this.y = 0;
-	this.playerAreaPadding = 300;
+	this.playerAreaPadding = 200;
 
 	this.rect = {
 		'height': this.height - this.playerAreaPadding,

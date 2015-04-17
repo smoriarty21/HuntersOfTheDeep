@@ -11,7 +11,10 @@ var Player = function() {
 	this.canvasWidth = 1100;
 	this.direction = 'RIGHT';
 	this.gold = 0;
+
 	this.remove_enemies = []
+	this.remove_bullets = []
+
 	this.collision = 'NONE';
 
 	this.motion = {
@@ -78,14 +81,14 @@ var Player = function() {
 			this.bullets[i]['x'] += this.bullets[i]['speed'];
 
 			if(this.bullets[i]['x'] > this.canvasWidth + this.x) {
-				this.bullets.splice(i);
+				this.remove_bullets.push(i);
 			}
 
 			for(var j = 0; j < enemies.length; j++) {
 				var hit_enemy = this.checkCollision(this.bullets[i]['x'], this.bullets[i]['y'], this.bullets[i]['height'], this.bullets[i]['width'], enemies[j].x, enemies[j].y, enemies[j].height, enemies[j].width);
 
 				if(hit_enemy) {
-					this.bullets.splice(i);
+					this.remove_bullets.push(i);
 					
 					enemies[j].hp -= this.wep.damage;
 
@@ -97,10 +100,15 @@ var Player = function() {
 				}
 			}
 
-			for(var i = 0; i < this.remove_enemies.length; i++) {
-				enemies.splice(this.remove_enemies[i]);
+			for(var q = 0; q < this.remove_enemies.length; q++) {
+				enemies.splice(q, 1);
 			}
 			this.remove_enemies = [];
+
+			for(var x = 0; x < this.remove_bullets.length; x++) {
+				this.bullets.splice(x, 1);
+			}
+			this.remove_bullets = [];
 		}
 
 		if(this.status == 'STILL') {
@@ -182,8 +190,9 @@ var Player = function() {
 		context.drawImage(img, this.x, this.y, this.width, this.height);
 
 		//Bullets
-		for(var i = 0; i < this.bullets.length; i++) {
-			context.fillStyle=this.wep.color;
+		context.fillStyle=this.wep.color;
+
+		for(var i = 0; i < this.bullets.length; i++) {	
 			context.fillRect(this.bullets[i]['x'], this.bullets[i]['y'], this.bullets[i]['width'], this.bullets[i]['height']);
 		}
 
@@ -195,7 +204,10 @@ var Player = function() {
 	}
 
 	this.shoot = function() {
-		var bullet = this.wep;
+		//var bullet = this.wep;
+		//this.weapon = new Weapon();
+		var wep2 = new Weapon();
+		var bullet = wep2.generate('NORMAL');
 		bullet['y'] = (this.y + (this.height / 2) - (bullet['height'] / 2)) + 7;
 
 		if(this.direction == 'LEFT') {
