@@ -33,25 +33,25 @@ function Game() {
 		switch (event.keyCode) {
 	    	case 65: // Left
 	    		if (status == 'PLAYING') {
-	      			player.status = 'LEFT';
+	      			player.motion['LEFT'] = 1;
 	      		}
 	    		break;
 
 	    	case 87: // Up
 	      		if (status == 'PLAYING') {
-	      			player.status = 'UP';
+	      			player.motion['UP'] = 1;
 	      		}
 	    		break;
 
 	    	case 68: // Right
 	      		if (status == 'PLAYING') {
-	      			player.status = 'RIGHT';
+	      			player.motion['RIGHT'] = 1;
 	      		}
 	    		break;
 
 	    	case 83: // Down
 	      		if (status == 'PLAYING') {
-	      			player.status = 'DOWN';
+	      			player.motion['DOWN'] = 1;
 	      		}
 	    		break;
 
@@ -201,7 +201,7 @@ function Game() {
 			world.enemies[i].checkPlayer(player.x, player.y, player.width, player.height);
 		}
 
-		world.update(player.x, player.y, player);
+		world.update(player);
 		player.update(world.enemies, world);
 		ui.update(player.hp, player);
 
@@ -261,23 +261,29 @@ function Game() {
 
 			//Player collision with camera edges
 			if(player.x + player.width >= camera.rect['width'] + camera.rect['x']) {
-				if(this.snap_x != 'RIGHT' && this.snap_x != 'ALL') {
-					player.status = 'RIGHTWALL';
+				if(this.snap_x != 'RIGHT' && this.snap_x != 'ALL' && player.motion['RIGHT']) {
+					player.x -= player.speed;
+
 					world.status = 'RIGHT';
 				}
 			} else if(player.x <= camera.rect['x']) {
-				if(this.snap_x != 'LEFT' && this.snap_x != 'ALL') {
-					player.status = 'LEFTWALL';
+				if(this.snap_x != 'LEFT' && this.snap_x != 'ALL' && player.motion['LEFT']) {
+					player.x += player.speed;
+
 					world.status = 'LEFT';
 				}
-			} else if(player.y <= camera.rect['y']) {
-				if(this.snap_y != 'TOP' && this.snap_y != 'ALL') {
-					player.status = 'TOPWALL';
+			}
+
+			if(player.y <= camera.rect['y']) {
+				if(this.snap_y != 'TOP' && this.snap_y != 'ALL' && player.motion['UP']) {
+					player.y += player.speed;
+
 					world.status = 'UP';
 				}
 			} else if(player.y + player.height >= camera.rect['height'] + camera.rect['y']) {
-				if(this.snap_y != 'BOTTOM' && this.snap_y != 'ALL' && player.status != 'STILL') {
-					player.status = 'BOTTOMWALL';
+				if(this.snap_y != 'BOTTOM' && this.snap_y != 'ALL' && player.motion['DOWN']) {
+					player.y -= player.speed;
+
 					world.status = 'DOWN';
 				}
 			} else {
