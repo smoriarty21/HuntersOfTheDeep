@@ -17,8 +17,9 @@
 ###Action
 * RMB = Fire Primary Weapon
 
-###Player Menus
+###Interface
 * Q = Open Stats Menu
+* ~ = Show FPS
 
 ###Interaction
 * E = Action Button
