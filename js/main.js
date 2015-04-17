@@ -286,8 +286,6 @@ function Game() {
 
 					world.status = 'DOWN';
 				}
-			} else {
-				world.status = 'STILL';
 			}
 
 			update();
