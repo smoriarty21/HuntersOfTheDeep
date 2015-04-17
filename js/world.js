@@ -142,9 +142,11 @@ function World() {
 		this.velocity[1] = y;
 	}
 
-	this.draw = function(context) {
+	this.draw = function(context, playerX) {
 		for(var i = 0; i < this.images.length; i++) {
-			context.drawImage(this.images[i]['image'], this.images[i]['x'], this.images[i]['y'], this.images[i]['width'], this.images[i]['height']);
+			if(this.images[i]['x'] > playerX - (this.canvasWidth + (playerX / 2)) && this.images[i]['x'] < playerX + (this.canvasWidth - (playerX / 2))) {
+				context.drawImage(this.images[i]['image'], this.images[i]['x'], this.images[i]['y'], this.images[i]['width'], this.images[i]['height']);
+			}
 		}
 
 		//Town
