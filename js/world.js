@@ -34,8 +34,7 @@ function World() {
 		if(this.status == 'STILL') {
 			this.setVelocity(0,0);
 		} else if(this.status == 'RIGHT') {
-			console.log('1');
-			if(this.x + this.width > this.canvasWidth) { console.log('2');this.setVelocity(-this.speed, 0); }
+			if(this.x + this.width > this.canvasWidth) { this.setVelocity(-this.speed, 0); }
 		} else if(this.status == 'LEFT') {
 			if(this.x < 0) { this.setVelocity(this.speed, 0); }
 		} else if(this.status == 'UP') {
