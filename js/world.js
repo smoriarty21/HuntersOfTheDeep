@@ -3,7 +3,7 @@ function World() {
 	this.y = 0;
 	this.velocity = [0, 0];
 	this.height = 1200;
-	this.width = 2000;
+	this.width = 6600;
 	this.status = 'STILL';
 	this.canvasHeight = 600;
 	this.canvasWidth = 1100;
@@ -28,13 +28,14 @@ function World() {
 	//Town
 	this.bounty_board = new BountyBoard(this);
 
-	this.update = function(playerX, playerY, player) {
+	this.update = function(player) {
 		this.setVelocity(0,0);
 
 		if(this.status == 'STILL') {
 			this.setVelocity(0,0);
 		} else if(this.status == 'RIGHT') {
-			if(this.x + this.width > this.canvasWidth) { this.setVelocity(-this.speed, 0); }
+			console.log('1');
+			if(this.x + this.width > this.canvasWidth) { console.log('2');this.setVelocity(-this.speed, 0); }
 		} else if(this.status == 'LEFT') {
 			if(this.x < 0) { this.setVelocity(this.speed, 0); }
 		} else if(this.status == 'UP') {
@@ -89,12 +90,9 @@ function World() {
 		} else if(this.boss_fight && this.boss_camera_set) {
 			this.velocity[0] = 0;
 			this.velocity[1] = 0;
-			console.log('1');
 
 			for(var i = 0; i < this.enemies.length; i++) {
-				console.log('in');
 				if(this.enemies[i].boss) {
-					console.log('done');
 					this.enemies[i].status = 'BEAM';
 				}
 			}
@@ -103,17 +101,24 @@ function World() {
 				this.images[i]['x'] += this.velocity[0];
 				this.images[i]['y'] += this.velocity[1];
 			}
-
-			this.x += this.velocity[0];
-			this.y += this.velocity[1];
 		}
+
+		//Check that player is moving
+		if(!player.motion['RIGHT'] && !player.motion['LEFT'] && !player.motion['DOWN'] && !player.motion['UP']) {
+			this.velocity[0] = 0;
+			this.velocity[1] = 0;
+			this.status = 'STILL';
+		}
+
+		this.x += this.velocity[0];
+		this.y += this.velocity[1];
 
 		//Town
 		world.bounty_board.update(this.velocity[0], this.velocity[1], player);
 
 		//Enemies
 		for(var i = 0; i < this.enemies.length; i++) {
-			this.enemies[i].update(playerX, playerY, player);
+			this.enemies[i].update(player.x, player.y, player);
 
 			this.enemies[i].x += this.velocity[0];
 			this.enemies[i].y += this.velocity[1];
@@ -283,7 +288,7 @@ function World() {
 			var  bottom_range = this.height - 300;
 			badGuy.y = this.util.random(bottom_range - 300) + 300;
 			this.enemies.push(badGuy);
-		}
+		}*/
 	
 		player.y = 500;
 		player.setVelocity(0,0);
@@ -293,7 +298,7 @@ function World() {
 		boss.x = 1700;
 		boss.y = 220;
 
-		this.enemies.push(boss);*/
+		this.enemies.push(boss);
 	}
 
 	this.generate_town = function() {

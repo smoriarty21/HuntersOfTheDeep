@@ -12,6 +12,8 @@ var Player = function() {
 	this.direction = 'RIGHT';
 	this.gold = 0;
 
+	this.world_collisions = [];
+
 	this.remove_enemies = []
 	this.remove_bullets = []
 
@@ -111,52 +113,26 @@ var Player = function() {
 			this.remove_bullets = [];
 		}
 
-		if(this.status == 'STILL') {
-			this.setVelocity(0,0);
-		} else if(this.status == 'RIGHT') {
-			this.direction = 'RIGHT';
-			this.setVelocity(this.speed,0);
-			this.motion['RIGHT'] = 1;
-		} else if(this.status == 'LEFT') {
-			this.direction = 'LEFT';
-			this.setVelocity(-this.speed,0);
-			this.motion['LEFT'] = 1;
-		} else if(this.status == 'UP') {
-			this.setVelocity(0,-this.speed);
-			this.motion['UP'] = 1;
-		} else if(this.status == 'DOWN') {
-			this.setVelocity(0,this.speed);
-			this.motion['DOWN'];
-		} else if(this.status == 'TOPWALL') {
-			this.setVelocity(0,0);
-			this.y += 1;
-			this.status = 'STILL';
-		} else if(this.status == 'BOTTOMWALL') {
-			this.setVelocity(0,0);
-			this.y -= 1;
-			this.status = 'STILL';
-		} else if(this.status == 'RIGHTWALL') {
-			this.setVelocity(0,0);
-			this.x -= 1;
-			this.status = 'STILL';
-		} else if(this.status == 'LEFTWALL') {
-			this.setVelocity(0,0);
-			this.x += 1;
-			this.status = 'STILL';
+		//Player Movement
+		if(this.motion['RIGHT']) {
+			this.velocity[0] = this.speed;
+		}
+
+		if(this.motion['LEFT']) {
+			this.velocity[0] = -this.speed;
+		}
+
+		if(this.motion['DOWN']) {
+			this.velocity[1] = this.speed;
+		}
+
+		if(this.motion['UP']) {
+			this.velocity[1] = -this.speed;
 		}
 
 		//World Collision
-		world_collision = this.checkWorldCollision(world);
-		
-		if(world_collision == 'TOP') {
-			this.velocity[1] = this.speed;
-		} else if(world_collision == 'BOTTOM') {
-			this.velocity[1] = -this.speed;
-		} else if(world_collision == 'RIGHT') {
-			this.velocity[0] = -this.speed;
-		} else if(world_collision == 'LEFT') {
-			this.velocity[0] = this.speed;
-		}
+		this.checkWorldCollision(world);
+		this.world_collisions = [];
 
 		//Check for entering boss fight
 		if(!world.boss_fight_ready) {
@@ -204,10 +180,9 @@ var Player = function() {
 	}
 
 	this.shoot = function() {
-		//var bullet = this.wep;
-		//this.weapon = new Weapon();
 		var wep2 = new Weapon();
 		var bullet = wep2.generate('NORMAL');
+
 		bullet['y'] = (this.y + (this.height / 2) - (bullet['height'] / 2)) + 7;
 
 		if(this.direction == 'LEFT') {
@@ -228,41 +203,45 @@ var Player = function() {
 	}
 
 	this.checkWorldCollision = function(world) {
-		var collisions = [];
-
 		for(var i = 0; i < world.images.length; i++) {
 			if(world.images[i]['collision']) {
-				if(world.images[i]['x'] > this.x - 200 && world.images[i]['x'] < this.x + this.width + 200) {
-					var collided = this.checkCollision(this.x, this.y, this.height, this.width, world.images[i]['x'], world.images[i]['y'], world.images[i]['height'], world.images[i]['width'], 1);
-					collisions.push(collided);
+				if(world.images[i]['x'] > this.x - 400 && world.images[i]['x'] < this.x + this.width + 400) {
+					var collsion = this.checkCollision(this.x, this.y, this.height, this.width, world.images[i]['x'], world.images[i]['y'], world.images[i]['height'], world.images[i]['width']);
+					
+					if(collsion == 'TOP') {
+						this.y += this.speed;
+					}
+
+					if(collsion == 'BOTTOM') {
+						this.y -= this.speed;
+					}
+
+					if(collsion == 'LEFT') {
+						this.x += this.speed;
+					}
+
+					if(collsion == 'RIGHT') {
+						this.x -= this.speed;
+					}
 				}
-			}
-		}
-		
-		for(var j = 0; j < collisions.length; j++) {
-			if(collisions[j]) {
-				return collisions[j];
 			}
 		}
 	}
 
-	this.checkCollision = function(x1, y1, h1, w1, x2, y2, h2, w2, set_check_variable) {
-		if(x2 + w2 > x1 && x2 < x1 + w1 && y2 + h2 > y1 && y2 < y1 + h1) {
-			//if(set_check_variable) {
-				if(y1 > y2 + h2 - 25 && y1 < y2 + h2) {
-					return 'TOP';
-				} else if(y1 + h1 > y2 - 25 && y1 + h1 < y2 + 25) {
-					return 'BOTTOM';
-				} else if(x1 + w1 > x2 - 25 && x1 + w1 < x2 + 25) {
-					return 'RIGHT';
-				} else if(x1 > x2 + w2 - 25 && x1 < x2 + w2 + 25) {
-					return 'LEFT';
-				}
-			//}
-			//return true;
-		} else {
-			//this.collision = 'NONE';
+	this.checkCollision = function(x1, y1, h1, w1, x2, y2, h2, w2) {
+		if(x2 + w2 >= x1 && x2 <= x1 + w1 && y2 + h2 >= y1 && y2 <= y1 + h1) {
+			if(y1 >= y2 + h2 - 25 && y1 <= y2 + h2) {
+				return 'TOP';
+			} else if(y1 + h1 >= y2 - 25 && y1 + h1 <= y2 + 25) {
+				return 'BOTTOM';
+			}
 
+			if(x1 + w1 >= x2 - 25 && x1 + w1 <= x2 + 25) {
+				return 'RIGHT';
+			} else if(x1 >= x2 + w2 - 25 && x1 <= x2 + w2 + 25) {
+				return 'LEFT';
+			}
+		} else {
 			return false;
 		}
 	}
