@@ -273,7 +273,7 @@ function World() {
 		this.images = cave_walls;
 
 		//Enemies
-		var rng = this.util.random(5);
+		/*var rng = this.util.random(5);
 
 		for(var i = 0; i < rng; i++) {
 			this.enemy_generator = new Enemy();
@@ -293,7 +293,7 @@ function World() {
 		boss.x = 1700;
 		boss.y = 220;
 
-		this.enemies.push(boss);
+		this.enemies.push(boss);*/
 	}
 
 	this.generate_town = function() {

@@ -5,7 +5,7 @@ function Game() {
 	width = 1100;
 	height = 600;
 
-	var status = 'START';
+	var status = 'PLAYING';
 
 	this.snap_y = false;
 	this.snap_x = false;
