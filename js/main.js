@@ -163,7 +163,7 @@ function Game() {
 			context.fillStyle = 'black';
 			context.fillRect(0, 0, 1100, 600);
 
-			world.draw(context);
+			world.draw(context, player.x);
 			player.draw(context);
 			ui.draw(context, world.bounty_board);
 
@@ -180,7 +180,7 @@ function Game() {
 			context.fillStyle = 'black';
 			context.fillRect(0, 0, 1100, 600);
 
-			world.draw(context);
+			world.draw(context, player.x);
 			player.draw(context);
 			ui.draw(context);
 			crosshair.draw(context);
@@ -188,7 +188,7 @@ function Game() {
 			title.draw(context);
 			crosshair.draw(context);
 		} else if(status == 'DEAD') {
-			world.draw(context);
+			world.draw(context, player.x);
 			player.draw(context);
 			death_screen.draw(context);
 		} else if(status == 'START') {
