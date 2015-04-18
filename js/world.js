@@ -3,7 +3,7 @@ function World() {
 	this.y = 0;
 	this.velocity = [0, 0];
 	this.height = 1200;
-	this.width = 2000;
+	this.width = 2700;
 	this.status = 'STILL';
 	this.canvasHeight = 600;
 	this.canvasWidth = 1100;
@@ -22,6 +22,10 @@ function World() {
 	this.boss_y_in_place = false;
 	this.boss_fight_ready = false;
 	this.boss_roof_indexes = [];
+	this.boss_area_max_x = 0;
+	this.boss_area_min_x = -1;
+	this.boss_area_max_y = 0;
+	this.boss_area_min_y = -1;
 
 	this.cell_height = 50;
 	this.cell_width = 50;
@@ -262,6 +266,22 @@ function World() {
 				dungeon_part['width'] = 50;
 				dungeon_part['image'] = new Image();
 
+				if(i > this.boss_area_max_x) {
+					this.boss_area_max_x = i;
+				}
+
+				if(i < this.boss_area_min_x || this.boss_area_min_x == -1) {
+					this.boss_area_min_x = i;
+				}
+
+				if(j > this.boss_area_max_y) {
+					this.boss_area_max_y = j;
+				}
+
+				if(j < this.boss_area_min_y || this.boss_area_min_y == -1) {
+					this.boss_area_min_y = j;
+				}
+
 				if(i == this.width -  boss_area_size + 50) {
 					if(j >= (this.height / 2) - 100 && j < (this.height / 2) + 100) {
 						dungeon_part['image'].src = 'img/water.jpg';
@@ -298,9 +318,9 @@ function World() {
 		this.images = cave_walls;
 
 		//Enemies
-		/*var rng = this.util.random(5);
+		var rng = this.util.random(10);
 
-		for(var i = 0; i < rng; i++) {
+		for(var i = -40; i < rng; i++) {
 			this.enemy_generator = new Enemy();
 			var badGuy = this.enemy_generator.generate('SHARK');
 			badGuy.x = this.util.random(this.width - 400) + 400;
@@ -308,7 +328,7 @@ function World() {
 			var  bottom_range = this.height - 300;
 			badGuy.y = this.util.random(bottom_range - 300) + 300;
 			this.enemies.push(badGuy);
-		}*/
+		}
 	
 		player.y = 550;
 		player.setVelocity(0,0);
@@ -318,6 +338,11 @@ function World() {
 		boss.x = this.boss_x - boss.width - (this.cell_width * 2);
 		boss.y = this.boss_y + (this.cell_height * 4);
 		boss.set_x = boss.x;
+
+		boss.boss_area_max_x = this.boss_area_max_x;
+		boss.boss_area_min_x = this.boss_area_min_x;
+		boss.boss_area_max_y = this.boss_area_max_y;
+		boss.boss_area_min_y = this.boss_area_min_y;
 
 		this.enemies.push(boss);
 	}
