@@ -3,7 +3,7 @@ function World() {
 	this.y = 0;
 	this.velocity = [0, 0];
 	this.height = 1200;
-	this.width = 6600;
+	this.width = 2000;
 	this.status = 'STILL';
 	this.canvasHeight = 600;
 	this.canvasWidth = 1100;
@@ -13,7 +13,11 @@ function World() {
 	this.images = [];
 	this.enemies = [];
 
+	this.boss_y = 0;
+	this.boss_x = 0;
+
 	this.boss_fight = false;
+	this.boss_fight_start = false;
 	this.boss_x_in_place = false;
 	this.boss_y_in_place = false;
 	this.boss_fight_ready = false;
@@ -48,6 +52,8 @@ function World() {
 			//Find roof height
 			var max_roof_height = 0;
 
+			player.bullets = [];
+
 			for(var i = 0; i < this.boss_roof_indexes.length; i++) {
 				if(this.boss_roof_indexes[i] > max_roof_height) {
 					max_roof_height = this.boss_roof_indexes[i];
@@ -58,7 +64,6 @@ function World() {
 			this.velocity[1] = 5;
 
 			for(var i = 0; i < this.images.length; i++) {
-
 				if(!((this.width / 50) % i)) {
 					if(this.images[i]['x'] <= -(this.width - this.canvasWidth)) {
 						this.velocity[0] = 0;
@@ -71,12 +76,20 @@ function World() {
 					this.boss_y_in_place = true;
 				}
 
+				//Move Images
 				this.images[i]['x'] -= this.velocity[0];
 				this.images[i]['y'] += this.velocity[1];
 			}
 
+			//Move Enemy durring animation
+			for(var i = 0; i < this.enemies.length; i++) {
+				this.enemies[i].x += this.velocity[0];
+				this.enemies[i].y += this.velocity[1];
+			}
+
 			if(this.boss_y_in_place && this.boss_x_in_place) {
 				this.boss_fight_ready = true;
+				this.boss_camera_set = true;
 			}
 
 			this.x += this.velocity[0];
@@ -91,8 +104,9 @@ function World() {
 			this.velocity[1] = 0;
 
 			for(var i = 0; i < this.enemies.length; i++) {
-				if(this.enemies[i].boss) {
+				if(this.enemies[i].boss && !this.boss_fight_start) {
 					this.enemies[i].status = 'BEAM';
+					this.boss_fight_start = true;
 				}
 			}
 		} else {
@@ -117,7 +131,7 @@ function World() {
 
 		//Enemies
 		for(var i = 0; i < this.enemies.length; i++) {
-			this.enemies[i].update(player.x, player.y, player);
+			this.enemies[i].update(player.x, player.y, player, this);
 
 			this.enemies[i].x += this.velocity[0];
 			this.enemies[i].y += this.velocity[1];
@@ -260,9 +274,14 @@ function World() {
 				} else if(i == this.width - 50) {
 					dungeon_part['image'].src = 'img/sand.jpg';
 					dungeon_part['collision'] = true;
+					this.boss_x = i;
 				} else if(j < 200) {
 					dungeon_part['image'].src = 'img/sand.jpg';
 					dungeon_part['collision'] = true;
+
+					if(j > this.boss_y) {
+						this.boss_y = j;
+					}
 
 					this.boss_roof_indexes.push(j);
 				} else if( j > (this.height / 2) + 100) {
@@ -291,13 +310,14 @@ function World() {
 			this.enemies.push(badGuy);
 		}*/
 	
-		player.y = 500;
+		player.y = 550;
 		player.setVelocity(0,0);
 
 		this.enemy_generator = new Enemy();
 		var boss = this.enemy_generator.generate('WORM');
-		boss.x = 1700;
-		boss.y = 220;
+		boss.x = this.boss_x - boss.width - (this.cell_width * 2);
+		boss.y = this.boss_y + (this.cell_height * 4);
+		boss.set_x = boss.x;
 
 		this.enemies.push(boss);
 	}

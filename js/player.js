@@ -37,6 +37,8 @@ var Player = function() {
 	this.xp_bonus = 1;
 	this.treasure_bonus = 1;
 
+	this.start_boss_fight = false;
+
 	this.weapon = new Weapon();
 	this.wep = this.weapon.generate('NORMAL');
 
@@ -116,10 +118,12 @@ var Player = function() {
 		//Player Movement
 		if(this.motion['RIGHT']) {
 			this.velocity[0] = this.speed;
+			this.direction = 'RIGHT';
 		}
 
 		if(this.motion['LEFT']) {
 			this.velocity[0] = -this.speed;
+			this.direction = 'LEFT';
 		}
 
 		if(this.motion['DOWN']) {
@@ -148,6 +152,10 @@ var Player = function() {
 			if(world.boss_y_in_place && !world.boss_fight_ready) {
 				this.velocity[1] = 0;
 			}
+		} else if(world.boss_fight_ready && !this.start_boss_fight) {
+			//this.x += 50;
+			this.velocity = [0,0];
+			this.start_boss_fight = true;
 		}
 
 		this.x += this.velocity[0];
