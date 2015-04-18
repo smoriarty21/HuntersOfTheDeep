@@ -32,25 +32,25 @@ function Game() {
 	window.addEventListener('keydown', function(event) {
 		switch (event.keyCode) {
 	    	case 65: // Left
-	    		if (status == 'PLAYING') {
+	    		if (status == 'PLAYING' && !player.motion['RIGHT']) {
 	      			player.motion['LEFT'] = 1;
 	      		}
 	    		break;
 
 	    	case 87: // Up
-	      		if (status == 'PLAYING') {
+	      		if (status == 'PLAYING' && !player.motion['DOWN']) {
 	      			player.motion['UP'] = 1;
 	      		}
 	    		break;
 
 	    	case 68: // Right
-	      		if (status == 'PLAYING') {
+	      		if (status == 'PLAYING' && !player.motion['LEFT']) {
 	      			player.motion['RIGHT'] = 1;
 	      		}
 	    		break;
 
 	    	case 83: // Down
-	      		if (status == 'PLAYING') {
+	      		if (status == 'PLAYING' && !player.motion['UP']) {
 	      			player.motion['DOWN'] = 1;
 	      		}
 	    		break;
