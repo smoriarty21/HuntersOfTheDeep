@@ -96,8 +96,9 @@ var Player = function() {
 					
 					enemies[j].hp -= this.wep.damage;
 
-					if(enemies[j].hp <= 0) {
+					if(enemies[j].hp <= 0 && !enemies[j].boss) {
 						this.add_exp(enemies[j].base_xp * this.xp_bonus);
+						world.total_dungeon_xp += enemies[j].base_xp;
 						this.remove_enemies.push(j);
 						break;
 					}	
