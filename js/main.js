@@ -5,7 +5,7 @@ function Game() {
 	width = 1100;
 	height = 600;
 
-	var status = 'PLAYING';
+	var status = 'START';
 
 	this.snap_y = false;
 	this.snap_x = false;
@@ -19,7 +19,6 @@ function Game() {
 	sofa_king = new StudioCred(this.height, this.width);
 
 	world = new World();
-	//world.generateDungeon(player);
 	world.generate_town(player);
 
 	this.stats_menu_open = false;
@@ -268,7 +267,7 @@ function Game() {
 			//Music
 			if(!this.music_playing) {
 				this.game_music = new Audio('audio/theme.mp3');
-				this.game_music.volume = .0;
+				this.game_music.volume = .5;
 				this.game_music.load();
 
 				this.game_music.addEventListener('ended', function() {
