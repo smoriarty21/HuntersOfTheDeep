@@ -20,7 +20,7 @@ function Game() {
 
 	world = new World();
 	//world.generateDungeon(player);
-	world.generate_town();
+	world.generate_town(player);
 
 	this.stats_menu_open = false;
 	
@@ -39,7 +39,7 @@ function Game() {
 	    		break;
 
 	    	case 87: // Up
-	      		if (status == 'PLAYING' && !player.motion['DOWN']) {
+	      		if (status == 'PLAYING' && !player.motion['DOWN'] && !player.in_town) {
 	      			player.motion['UP'] = 1;
 	      		}
 	    		break;
@@ -51,7 +51,7 @@ function Game() {
 	    		break;
 
 	    	case 83: // Down
-	      		if (status == 'PLAYING' && !player.motion['UP']) {
+	      		if (status == 'PLAYING' && !player.motion['UP'] && !player.in_town) {
 	      			player.motion['DOWN'] = 1;
 	      		}
 	    		break;
@@ -144,13 +144,13 @@ function Game() {
 		    				player.hp = player.max_hp;
 
 		    				world = new World(player);
-		    				world.generate_town();
+		    				world.generate_town(player);
 		    			}
 		    		}
 		    	} else if(status == 'TITLE') {
 		    		if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width, title.play_button_x, title.play_button_y, title.play_button_height, title.play_button_width)) {
 		    			world = new World(player);
-		    			world.generate_town();
+		    			world.generate_town(player);
 
 		    			status = 'PLAYING';
 		    		}

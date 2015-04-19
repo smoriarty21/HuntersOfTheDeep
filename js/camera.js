@@ -1,6 +1,6 @@
 var Camera = function() {
 	this.height = 600;
-	this.width = 1100;
+	this.width = 1200;
 	this.x = 0;
 	this.y = 0;
 	this.playerAreaPadding = 900;
