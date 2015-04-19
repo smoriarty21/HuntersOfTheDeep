@@ -1,5 +1,7 @@
 var Player = function() {
-	this.hp = 100;
+	this.max_hp = 100;
+	this.hp = this.max_hp;
+
 	this.x = 300;
 	this.y = 300;
 	this.height = 30;
@@ -29,7 +31,7 @@ var Player = function() {
 	//Player Stats
 	this.level = 1;
 	this.xp = 0;
-	this.xp_for_next_level = 100;
+	this.xp_for_next_level = 1000;
 	this.weapon_speed_bonus = 1;
 	this.weapon_dmg_bonus = 1;
 	this.sub_speed_bonus = 1;
@@ -59,7 +61,13 @@ var Player = function() {
 			this.weapon_dmg_bonus = 1;
 			this.hp_bonus = 1;
 
-			this.xp_for_next_level *= 5;
+			if(this.level < 3) {
+				this.xp_for_next_level *= 4;				
+			} else if(this.level < 4) {
+				this.xp_for_next_level *= 2;
+			} else {
+				this.xp_for_next_level += 6000;
+			}
 
 			this.weapon_speed_bonus += 0.05;
 			this.weapon_dmg_bonus += 0.05;
@@ -214,7 +222,7 @@ var Player = function() {
 	this.checkWorldCollision = function(world) {
 		for(var i = 0; i < world.images.length; i++) {
 			if(world.images[i]['collision']) {
-				if(world.images[i]['x'] > this.x - 400 && world.images[i]['x'] < this.x + this.width + 400) {
+				if(world.images[i]['x'] > this.x - 500 && world.images[i]['x'] < this.x + this.width + 400) {
 					var collsion = this.checkCollision(this.x, this.y, this.height, this.width, world.images[i]['x'], world.images[i]['y'], world.images[i]['height'], world.images[i]['width']);
 					
 					if(collsion == 'TOP') {
