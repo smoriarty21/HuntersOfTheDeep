@@ -191,9 +191,15 @@ function World() {
 
 	//World Generators
 	this.generateDungeon = function(player) {
+		this.width = this.util.random(30000) + 6000;
+
 		var boss_area_size = 1150;
+
 		cave_walls = [];
 		cave_water = [];
+
+		this.total_dungeon_xp = 0;
+		this.total_dungeon_gold = 0;
 		
 		rng = this.util.random(3);
 		bot_rng = this.util.random(5);
@@ -333,15 +339,15 @@ function World() {
 		//Enemies
 		var rng = this.util.random(10);
 
-		/*for(var i = -2; i < rng; i++) {
+		for(var i = -5; i < rng; i++) {
 			this.enemy_generator = new Enemy();
 			var badGuy = this.enemy_generator.generate('SHARK');
-			badGuy.x = this.util.random(this.width - 400) + 400;
+			badGuy.x = this.util.random(this.width) + 3000;
 
 			var  bottom_range = this.height - 300;
 			badGuy.y = this.util.random(bottom_range - 300) + 300;
 			this.enemies.push(badGuy);
-		}*/
+		}
 	
 		player.y = 550;
 		player.setVelocity(0,0);
@@ -365,6 +371,9 @@ function World() {
 	}
 
 	this.generate_town = function() {
+		this.width = 2200;
+		this.height = 1100;
+
 		this.town = true;
 		worldParts = [];
 

@@ -19,7 +19,8 @@ function Game() {
 	sofa_king = new StudioCred(this.height, this.width);
 
 	world = new World();
-	world.generateDungeon(player);
+	//world.generateDungeon(player);
+	world.generate_town();
 
 	this.stats_menu_open = false;
 	
@@ -140,6 +141,8 @@ function Game() {
 		    		} else if(world.show_world_complete_dialog) {
 		    			//Return to town button
 		    			if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width,  world.level_complete_dialog.btn_x, world.level_complete_dialog.btn_y, world.level_complete_dialog.btn_height, world.level_complete_dialog.btn_width)) {
+		    				player.hp = player.max_hp;
+
 		    				world = new World(player);
 		    				world.generate_town();
 		    			}
@@ -267,6 +270,12 @@ function Game() {
 				this.game_music = new Audio('audio/theme.mp3');
 				this.game_music.volume = .0;
 				this.game_music.load();
+
+				this.game_music.addEventListener('ended', function() {
+				    this.currentTime = 0;
+				    this.play();
+				}, false);
+
 				this.game_music.play();
 
 				this.music_playing = true;
@@ -276,13 +285,13 @@ function Game() {
 			if(player.x + player.width >= camera.rect['width'] + camera.rect['x']) {
 				if(this.snap_x != 'RIGHT' && this.snap_x != 'ALL' && player.motion['RIGHT']) {
 					player.x -= player.speed;
-
 					world.status = 'RIGHT';
 				}
-			} else if(player.x <= camera.rect['x']) {
+			}
+
+			if(player.x <= camera.rect['x']) {
 				if(this.snap_x != 'LEFT' && this.snap_x != 'ALL' && player.motion['LEFT']) {
 					player.x += player.speed;
-
 					world.status = 'LEFT';
 				}
 			}
@@ -293,7 +302,9 @@ function Game() {
 
 					world.status = 'UP';
 				}
-			} else if(player.y + player.height >= camera.rect['height'] + camera.rect['y']) {
+			} 
+
+			if(player.y + player.height >= camera.rect['height'] + camera.rect['y']) {
 				if(this.snap_y != 'BOTTOM' && this.snap_y != 'ALL' && player.motion['DOWN']) {
 					player.y -= player.speed;
 

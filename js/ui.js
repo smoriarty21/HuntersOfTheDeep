@@ -102,7 +102,7 @@ function StatsMenu() {
 	this.width = 300;
 	this.x = 50;
 	this.y = 50;
-	this.padding = 20;
+	this.padding = 25;
 
 	this.color = '#000000';
 
@@ -141,22 +141,22 @@ function StatsMenu() {
 		context.fillText('LEVEL:', (this.x + this.padding), (this.y + this.padding));
 		context.fillText(this.level, (this.x + (this.padding * 4)), (this.y + this.padding));
 
-		it += 1.3;
+		it += 0.8;
 
 		context.fillStyle="#FFFFFF";
 		context.fillText('XP:', (this.x + this.padding), (this.y + this.padding) + (this.padding * it));
 		context.fillText(this.xp, (this.x + (this.padding * 4)), (this.y + this.padding) + (this.padding * it));
 
-		it++;
+		it += 2;
 
 		context.fillStyle="#FFFFFF";
 		context.fillText('Next Level:', (this.x + this.padding), (this.y + this.padding) + (this.padding * it));
-		context.fillText(this.xp_for_next_level + ' XP', (this.x + (this.padding * 8)), (this.y + this.padding) + (this.padding * it));
+		context.fillText((this.xp_for_next_level - this.xp) + ' XP', (this.x + (this.padding * 8)), (this.y + this.padding) + (this.padding * it));
 
 		it++;
 
 		context.fillStyle="#FFFFFF";
-		context.fillText('Weapon Speed Bonus:', (this.x + this.padding), (this.y + this.padding) + (this.padding * it));
+		context.fillText('Attack Speed Bonus:', (this.x + this.padding), (this.y + this.padding) + (this.padding * it));
 		context.fillText(Math.round((this.weapon_speed_bonus - 1) * 100) / 100, (this.x + (this.padding * 8)), (this.y + this.padding) + (this.padding * it));
 
 		it++;
