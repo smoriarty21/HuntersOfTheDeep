@@ -72,7 +72,25 @@ var Enemy = function() {
 
 				this.playerInRange = false;
 
-				this.update = function(playerX, playerY, player) {
+				this.checkCollision = function(x1, y1, h1, w1, x2, y2, h2, w2) {
+					if(x2 + w2 >= x1 && x2 <= x1 + w1 && y2 + h2 >= y1 && y2 <= y1 + h1) {
+						if(y1 >= y2 + h2 - 25 && y1 <= y2 + h2) {
+							return 'TOP';
+						} else if(y1 + h1 >= y2 - 25 && y1 + h1 <= y2 + 25) {
+							return 'BOTTOM';
+						}
+
+						if(x1 + w1 >= x2 - 25 && x1 + w1 <= x2 + 25) {
+							return 'RIGHT';
+						} else if(x1 >= x2 + w2 - 25 && x1 <= x2 + w2 + 25) {
+							return 'LEFT';
+						}
+					} else {
+						return false;
+					}
+				}
+
+				this.update = function(playerX, playerY, player, world) {
 					if(this.direction == 'RIGHT') {
 						this.image.src = 'img/shark-r.png';
 					} else {
@@ -191,6 +209,28 @@ var Enemy = function() {
 						}
 					}
 
+					for(var i = 0; i < world.images.length; i++) {
+						if(world.images[i]['collision'] && world.images[i]['x'] > this.x - 500 && world.images[i]['x'] < this.x + 500) {
+							collision_check = this.checkCollision(this.x, this.y, this.height, this.width, world.images[i]['x'], world.images[i]['y'], world.images[i]['height'], world.images[i]['width']);
+							
+							if(collision_check) {
+								if(collision_check == 'TOP') {
+									this.y += this.speed;
+									this.velocity[1] = this.speed;
+								} else if(collision_check == 'BOTTOM') {
+									this.y -= this.speed;
+									this.velocity[1] = -this.speed;
+								} else if(collision_check == 'RIGHT') {
+									this.x -= this.speed;
+									this.velocity[0] = -this.speed;
+								} else if(collision_check == 'LEFT') {
+									this.x += this.speed;
+									this.velocity[0] = this.speed;
+								}
+							}
+						}
+					}
+
 					this.x += this.velocity[0];
 					this.y += this.velocity[1];
 				}
@@ -200,43 +240,161 @@ var Enemy = function() {
 			//Bosses
 			case 'WORM':
 				this.status = 'STILL';
-				//this.type = 'SHARK';
 				this.boss = true;
-				this.hp = 100;
+
+				this.hp = 10;
+
 				this.x = 0;
 				this.y = 0;
+				this.set_x = 0;
+
 				this.height = 70;
 				this.width = 200;
+
 				this.base_xp = 500;
+
 				this.velocity = [0, 0];
-				this.speed = 6;
+				this.speed = 12;
+
 				this.worldWidth = 2000;
 				this.worldHeight = 1200;
+
 				this.count = 0;
+
+				this.boss_area_max_y = 0;
+				this.boss_area_min_y = 0;
+
+				this.boss_area_max_x = 0;
+				this.boss_area_min_x = 0;
+
 				this.playerHeight = 50;
-				this.damage = 5;
 
-				this.viewRange = 100;
+				this.damage = 20;
 
-				//Attack AI Variables
-				this.direction_switched = false;
-				this.backed_distance = 0;
-				this.attack_status = null;
-
+				//Attack AI Variable
 				this.direction = 'LEFT';
+				this.seek_beams = 0;
+				this.action_start = false;
 
 				this.image = new Image();
 				this.image.src = 'img/worm-boss.png';
 
 				this.playerInRange = false;
 
-				this.update = function(playerX, playerY, player) {
-					if(status == 'BEAM') {
-						this.velocity[y] = this.speed;
+				this.velocity = [-this.speed, -this.speed];
+
+				this.update = function(playerX, playerY, player, world) {
+					if(this.status == 'BEAM') {
+						if(!this.action_start) {
+							this.velocity[0] = 0;
+							this.velocity[1] = this.speed;
+							this.action_start = true;
+						}
+
+						var rng = this.utils.random(600);
+
+						if(rng == 1) {
+							this.status = 'CHARGE';
+							this.action_start = false;
+						} else if(rng == 2) {
+							this.status = 'RAM';
+							this.action_start = false;
+						}
+					} else if(this.status == 'CHARGE') {
+						if(!this.action_start) {
+							this.velocity[0] = -this.speed;
+							this.action_start = true;
+						}
+
+						this.velocity[1] = 0;
+					} else if(this.status == 'SWIMBACK') {
+						if(!this.action_start) {
+							this.velocity[0] = this.speed;
+							this.action_start = true;
+						}
+
+						this.velocity[1] = 0;
+						if(this.x + this.width > world.canvasWidth - (world.cell_width * 2)) {
+							this.status = 'BEAM';
+							this.action_start = false;
+						}
+					} else if(this.status == 'RAM') {
+						if(this.y > player.y&& this.y < player.y + this.speed) {
+							this.status = 'CHARGE';
+							this.action_start = false;
+							return true;
+						}else if(this.y < player.y) {
+							this.velocity[1] = this.speed;
+						} else if(this.y > player.y) {
+							this.velocity[1] = -this.speed;
+						}
+					} else if(this.status == 'DEAD') {
+						if(!world.show_world_complete_dialog) {
+							world.show_world_complete_dialog = true;
+						}
+
+						this.y += 1;
 					}
 
-					this.x += this.velocity[0];
-					this.y += this.velocity[1];
+					for(var i = 0; i < world.images.length; i++) {
+						if(world.images[i]['collision'] && world.images[i]['x'] > this.x - 500 && world.images[i]['x'] < this.x + 500) {
+							collision_check = this.checkCollision(this.x, this.y, this.height, this.width, world.images[i]['x'], world.images[i]['y'], world.images[i]['height'], world.images[i]['width']);
+
+							if(collision_check) {
+								if(collision_check == 'TOP') {
+									this.y += this.speed;
+									this.velocity[1] = this.speed;
+								} else if(collision_check == 'BOTTOM') {
+									this.y--;
+									this.velocity[1] = -this.speed;
+
+									if(this.status == 'DEAD') {
+										this.velocity = [0, 0];
+									}
+								} else if(collision_check == 'RIGHT') {
+									this.x -= this.speed;
+									this.velocity[0] = -this.speed;
+								} else if(collision_check == 'LEFT') {
+									this.x += this.speed;
+									this.velocity[0] = this.speed;
+
+									if(this.status == 'CHARGE') {
+										this.status = 'SWIMBACK';
+										this.action_start = false;
+									}
+								}
+							}
+						}
+					}
+
+					if(this.status != 'STILL') {
+						this.x += this.velocity[0];
+						this.y += this.velocity[1];
+					}
+
+					if(this.hp <= 0 && this.status != 'DEAD') {
+						player.add_exp(this.base_xp);
+						world.total_dungeon_xp += this.base_xp;
+						this.status = 'DEAD';
+					}
+				}
+
+				this.checkCollision = function(x1, y1, h1, w1, x2, y2, h2, w2) {
+					if(x2 + w2 >= x1 && x2 <= x1 + w1 && y2 + h2 >= y1 && y2 <= y1 + h1) {
+						if(y1 >= y2 + h2 - 25 && y1 <= y2 + h2) {
+							return 'TOP';
+						} else if(y1 + h1 >= y2 - 25 && y1 + h1 <= y2 + 25) {
+							return 'BOTTOM';
+						}
+
+						if(x1 + w1 >= x2 - 25 && x1 + w1 <= x2 + 25) {
+							return 'RIGHT';
+						} else if(x1 >= x2 + w2 - 25 && x1 <= x2 + w2 + 25) {
+							return 'LEFT';
+						}
+					} else {
+						return false;
+					}
 				}
 
 				break;
@@ -253,11 +411,7 @@ var Enemy = function() {
 	this.get_health = function() {
 		return this.hp;
 	}
-
-	this.update = function(playerX, playerY, player) {
-
-	}
-
+	
 	this.draw = function(context) {
 
 	}

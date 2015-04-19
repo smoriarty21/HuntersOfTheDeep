@@ -34,11 +34,12 @@ var BountyBoard = function(world) {
 	}
 
 	this.draw = function(context) {
+		context.font = '500 10pt Calibri';
 		context.drawImage(this.image, this.x, this.y, this.width, this.height);
 
 		if(this.player_in_range && !this.menu_open) {
 			context.fillStyle="#FFFFFF";
-			context.fillText('Press E Key', this.x + 33, this.y - 12);
+			context.fillText('Press E Key', this.x + 5, this.y - 12);
 		}
 
 		if(this.player_in_range && this.menu_open) {

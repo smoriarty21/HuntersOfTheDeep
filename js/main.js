@@ -19,7 +19,7 @@ function Game() {
 	sofa_king = new StudioCred(this.height, this.width);
 
 	world = new World();
-	world.generateDungeon(player);
+	world.generate_town(player);
 
 	this.stats_menu_open = false;
 	
@@ -32,26 +32,26 @@ function Game() {
 	window.addEventListener('keydown', function(event) {
 		switch (event.keyCode) {
 	    	case 65: // Left
-	    		if (status == 'PLAYING') {
-	      			player.status = 'LEFT';
+	    		if (status == 'PLAYING' && !player.motion['RIGHT']) {
+	      			player.motion['LEFT'] = 1;
 	      		}
 	    		break;
 
 	    	case 87: // Up
-	      		if (status == 'PLAYING') {
-	      			player.status = 'UP';
+	      		if (status == 'PLAYING' && !player.motion['DOWN'] && !player.in_town) {
+	      			player.motion['UP'] = 1;
 	      		}
 	    		break;
 
 	    	case 68: // Right
-	      		if (status == 'PLAYING') {
-	      			player.status = 'RIGHT';
+	      		if (status == 'PLAYING' && !player.motion['LEFT']) {
+	      			player.motion['RIGHT'] = 1;
 	      		}
 	    		break;
 
 	    	case 83: // Down
-	      		if (status == 'PLAYING') {
-	      			player.status = 'DOWN';
+	      		if (status == 'PLAYING' && !player.motion['UP'] && !player.in_town) {
+	      			player.motion['DOWN'] = 1;
 	      		}
 	    		break;
 
@@ -130,18 +130,26 @@ function Game() {
 		switch (event.button) {
 	    	case 0: // Shoot
 	    		if(status == 'PLAYING') {
-		    		if(!this.world.bounty_board.menu_open) {
+		    		if(!this.world.bounty_board.menu_open && !world.show_world_complete_dialog) {
 		    			player.shoot();	
 		    		} else if(this.world.bounty_board.menu_open) {
 		    			if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width, this.world.bounty_board.x - 130, this.world.bounty_board.y - 175, 175, 400)) {
 		    				world = new World(player);
 		    				world.generateDungeon(player);
 		    			}
+		    		} else if(world.show_world_complete_dialog) {
+		    			//Return to town button
+		    			if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width,  world.level_complete_dialog.btn_x, world.level_complete_dialog.btn_y, world.level_complete_dialog.btn_height, world.level_complete_dialog.btn_width)) {
+		    				player.hp = player.max_hp;
+
+		    				world = new World(player);
+		    				world.generate_town(player);
+		    			}
 		    		}
 		    	} else if(status == 'TITLE') {
 		    		if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width, title.play_button_x, title.play_button_y, title.play_button_height, title.play_button_width)) {
 		    			world = new World(player);
-		    			world.generate_town();
+		    			world.generate_town(player);
 
 		    			status = 'PLAYING';
 		    		}
@@ -163,7 +171,7 @@ function Game() {
 			context.fillStyle = 'black';
 			context.fillRect(0, 0, 1100, 600);
 
-			world.draw(context);
+			world.draw(context, player.x);
 			player.draw(context);
 			ui.draw(context, world.bounty_board);
 
@@ -180,15 +188,22 @@ function Game() {
 			context.fillStyle = 'black';
 			context.fillRect(0, 0, 1100, 600);
 
-			world.draw(context);
+			world.draw(context, player.x);
 			player.draw(context);
 			ui.draw(context);
+
+			if(!world.town) {
+				if(world.level_complete_dialog.show) {
+					world.level_complete_dialog.draw(context, world.total_dungeon_xp, world.total_dungeon_gold);
+				}
+			}
+
 			crosshair.draw(context);
 		} else if(status == 'TITLE') {
 			title.draw(context);
 			crosshair.draw(context);
 		} else if(status == 'DEAD') {
-			world.draw(context);
+			world.draw(context, player.x);
 			player.draw(context);
 			death_screen.draw(context);
 		} else if(status == 'START') {
@@ -201,7 +216,7 @@ function Game() {
 			world.enemies[i].checkPlayer(player.x, player.y, player.width, player.height);
 		}
 
-		world.update(player.x, player.y, player);
+		world.update(player);
 		player.update(world.enemies, world);
 		ui.update(player.hp, player);
 
@@ -252,8 +267,14 @@ function Game() {
 			//Music
 			if(!this.music_playing) {
 				this.game_music = new Audio('audio/theme.mp3');
-				this.game_music.volume = .0;
+				this.game_music.volume = .5;
 				this.game_music.load();
+
+				this.game_music.addEventListener('ended', function() {
+				    this.currentTime = 0;
+				    this.play();
+				}, false);
+
 				this.game_music.play();
 
 				this.music_playing = true;
@@ -261,27 +282,33 @@ function Game() {
 
 			//Player collision with camera edges
 			if(player.x + player.width >= camera.rect['width'] + camera.rect['x']) {
-				if(this.snap_x != 'RIGHT' && this.snap_x != 'ALL') {
-					player.status = 'RIGHTWALL';
+				if(this.snap_x != 'RIGHT' && this.snap_x != 'ALL' && player.motion['RIGHT']) {
+					player.x -= player.speed;
 					world.status = 'RIGHT';
 				}
-			} else if(player.x <= camera.rect['x']) {
-				if(this.snap_x != 'LEFT' && this.snap_x != 'ALL') {
-					player.status = 'LEFTWALL';
+			}
+
+			if(player.x <= camera.rect['x']) {
+				if(this.snap_x != 'LEFT' && this.snap_x != 'ALL' && player.motion['LEFT']) {
+					player.x += player.speed;
 					world.status = 'LEFT';
 				}
-			} else if(player.y <= camera.rect['y']) {
-				if(this.snap_y != 'TOP' && this.snap_y != 'ALL') {
-					player.status = 'TOPWALL';
+			}
+
+			if(player.y <= camera.rect['y']) {
+				if(this.snap_y != 'TOP' && this.snap_y != 'ALL' && player.motion['UP']) {
+					player.y += player.speed;
+
 					world.status = 'UP';
 				}
-			} else if(player.y + player.height >= camera.rect['height'] + camera.rect['y']) {
-				if(this.snap_y != 'BOTTOM' && this.snap_y != 'ALL' && player.status != 'STILL') {
-					player.status = 'BOTTOMWALL';
+			} 
+
+			if(player.y + player.height >= camera.rect['height'] + camera.rect['y']) {
+				if(this.snap_y != 'BOTTOM' && this.snap_y != 'ALL' && player.motion['DOWN']) {
+					player.y -= player.speed;
+
 					world.status = 'DOWN';
 				}
-			} else {
-				world.status = 'STILL';
 			}
 
 			update();

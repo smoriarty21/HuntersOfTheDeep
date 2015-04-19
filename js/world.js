@@ -2,8 +2,8 @@ function World() {
 	this.x = 0;
 	this.y = 0;
 	this.velocity = [0, 0];
-	this.height = 1200;
-	this.width = 2000;
+	this.height = 1100;
+	this.width = 2500;
 	this.status = 'STILL';
 	this.canvasHeight = 600;
 	this.canvasWidth = 1100;
@@ -13,11 +13,27 @@ function World() {
 	this.images = [];
 	this.enemies = [];
 
+	this.boss_y = 0;
+	this.boss_x = 0;
+
 	this.boss_fight = false;
+	this.boss_fight_start = false;
 	this.boss_x_in_place = false;
 	this.boss_y_in_place = false;
 	this.boss_fight_ready = false;
 	this.boss_roof_indexes = [];
+	this.boss_area_max_x = 0;
+	this.boss_area_min_x = -1;
+	this.boss_area_max_y = 0;
+	this.boss_area_min_y = -1;
+
+	//Dungeon Stats
+	this.total_dungeon_xp = 0;
+	this.total_dungeon_gold = 0;
+
+	this.town = false;
+
+	this.show_world_complete_dialog = false;
 
 	this.cell_height = 50;
 	this.cell_width = 50;
@@ -28,7 +44,7 @@ function World() {
 	//Town
 	this.bounty_board = new BountyBoard(this);
 
-	this.update = function(playerX, playerY, player) {
+	this.update = function(player) {
 		this.setVelocity(0,0);
 
 		if(this.status == 'STILL') {
@@ -48,6 +64,8 @@ function World() {
 			//Find roof height
 			var max_roof_height = 0;
 
+			player.bullets = [];
+
 			for(var i = 0; i < this.boss_roof_indexes.length; i++) {
 				if(this.boss_roof_indexes[i] > max_roof_height) {
 					max_roof_height = this.boss_roof_indexes[i];
@@ -58,7 +76,6 @@ function World() {
 			this.velocity[1] = 5;
 
 			for(var i = 0; i < this.images.length; i++) {
-
 				if(!((this.width / 50) % i)) {
 					if(this.images[i]['x'] <= -(this.width - this.canvasWidth)) {
 						this.velocity[0] = 0;
@@ -71,12 +88,20 @@ function World() {
 					this.boss_y_in_place = true;
 				}
 
+				//Move Images
 				this.images[i]['x'] -= this.velocity[0];
 				this.images[i]['y'] += this.velocity[1];
 			}
 
+			//Move Enemy durring animation
+			for(var i = 0; i < this.enemies.length; i++) {
+				this.enemies[i].x += this.velocity[0];
+				this.enemies[i].y += this.velocity[1];
+			}
+
 			if(this.boss_y_in_place && this.boss_x_in_place) {
 				this.boss_fight_ready = true;
+				this.boss_camera_set = true;
 			}
 
 			this.x += this.velocity[0];
@@ -89,13 +114,11 @@ function World() {
 		} else if(this.boss_fight && this.boss_camera_set) {
 			this.velocity[0] = 0;
 			this.velocity[1] = 0;
-			console.log('1');
 
 			for(var i = 0; i < this.enemies.length; i++) {
-				console.log('in');
-				if(this.enemies[i].boss) {
-					console.log('done');
+				if(this.enemies[i].boss && !this.boss_fight_start) {
 					this.enemies[i].status = 'BEAM';
+					this.boss_fight_start = true;
 				}
 			}
 		} else {
@@ -103,17 +126,24 @@ function World() {
 				this.images[i]['x'] += this.velocity[0];
 				this.images[i]['y'] += this.velocity[1];
 			}
-
-			this.x += this.velocity[0];
-			this.y += this.velocity[1];
 		}
+
+		//Check that player is moving
+		if(!player.motion['RIGHT'] && !player.motion['LEFT'] && !player.motion['DOWN'] && !player.motion['UP']) {
+			this.velocity[0] = 0;
+			this.velocity[1] = 0;
+			this.status = 'STILL';
+		}
+
+		this.x += this.velocity[0];
+		this.y += this.velocity[1];
 
 		//Town
 		world.bounty_board.update(this.velocity[0], this.velocity[1], player);
 
 		//Enemies
 		for(var i = 0; i < this.enemies.length; i++) {
-			this.enemies[i].update(playerX, playerY, player);
+			this.enemies[i].update(player.x, player.y, player, this);
 
 			this.enemies[i].x += this.velocity[0];
 			this.enemies[i].y += this.velocity[1];
@@ -131,6 +161,11 @@ function World() {
 				}
 			}
 		}
+
+		//Check for completed dungeons
+		if(this.show_world_complete_dialog) {
+			this.level_complete_dialog.show = true;
+		}
 	}
 
 	this.setVelocity = function(x, y) {
@@ -138,9 +173,11 @@ function World() {
 		this.velocity[1] = y;
 	}
 
-	this.draw = function(context) {
+	this.draw = function(context, playerX) {
 		for(var i = 0; i < this.images.length; i++) {
-			context.drawImage(this.images[i]['image'], this.images[i]['x'], this.images[i]['y'], this.images[i]['width'], this.images[i]['height']);
+			if(this.images[i]['x'] > playerX - (this.canvasWidth + (playerX / 2)) && this.images[i]['x'] < playerX + (this.canvasWidth - (playerX / 2))) {
+				context.drawImage(this.images[i]['image'], this.images[i]['x'], this.images[i]['y'], this.images[i]['width'], this.images[i]['height']);
+			}
 		}
 
 		//Town
@@ -154,9 +191,17 @@ function World() {
 
 	//World Generators
 	this.generateDungeon = function(player) {
+		player.switch_to_dungeon();
+
+		this.width = this.util.random(30000) + 6000;
+
 		var boss_area_size = 1150;
+
 		cave_walls = [];
 		cave_water = [];
+
+		this.total_dungeon_xp = 0;
+		this.total_dungeon_gold = 0;
 		
 		rng = this.util.random(3);
 		bot_rng = this.util.random(5);
@@ -242,7 +287,23 @@ function World() {
 				dungeon_part['width'] = 50;
 				dungeon_part['image'] = new Image();
 
-				if(i == this.width -  boss_area_size + 50) {
+				if(i > this.boss_area_max_x) {
+					this.boss_area_max_x = i;
+				}
+
+				if(i < this.boss_area_min_x || this.boss_area_min_x == -1) {
+					this.boss_area_min_x = i;
+				}
+
+				if(j > this.boss_area_max_y) {
+					this.boss_area_max_y = j;
+				}
+
+				if(j < this.boss_area_min_y || this.boss_area_min_y == -1) {
+					this.boss_area_min_y = j;
+				}
+
+				if(i == this.width - boss_area_size + 50) {
 					if(j >= (this.height / 2) - 100 && j < (this.height / 2) + 100) {
 						dungeon_part['image'].src = 'img/water.jpg';
 						dungeon_part['collision'] = false;
@@ -254,9 +315,14 @@ function World() {
 				} else if(i == this.width - 50) {
 					dungeon_part['image'].src = 'img/sand.jpg';
 					dungeon_part['collision'] = true;
+					this.boss_x = i;
 				} else if(j < 200) {
 					dungeon_part['image'].src = 'img/sand.jpg';
 					dungeon_part['collision'] = true;
+
+					if(j > this.boss_y) {
+						this.boss_y = j;
+					}
 
 					this.boss_roof_indexes.push(j);
 				} else if( j > (this.height / 2) + 100) {
@@ -273,153 +339,922 @@ function World() {
 		this.images = cave_walls;
 
 		//Enemies
-		var rng = this.util.random(5);
+		var rng = this.util.random(10);
 
-		for(var i = 0; i < rng; i++) {
+		for(var i = -5; i < rng; i++) {
 			this.enemy_generator = new Enemy();
 			var badGuy = this.enemy_generator.generate('SHARK');
-			badGuy.x = this.util.random(this.width - 400) + 400;
+			badGuy.x = this.util.random(this.width) + 3000;
 
 			var  bottom_range = this.height - 300;
 			badGuy.y = this.util.random(bottom_range - 300) + 300;
 			this.enemies.push(badGuy);
 		}
 	
-		player.y = 500;
+		player.y = 550;
 		player.setVelocity(0,0);
 
 		this.enemy_generator = new Enemy();
 		var boss = this.enemy_generator.generate('WORM');
-		boss.x = 1700;
-		boss.y = 220;
+		boss.x = this.boss_x - boss.width - (this.cell_width * 2);
+		boss.y = this.boss_y + (this.cell_height * 4);
+		boss.set_x = boss.x;
+
+		boss.boss_area_max_x = this.boss_area_max_x;
+		boss.boss_area_min_x = this.boss_area_min_x;
+		boss.boss_area_max_y = this.boss_area_max_y;
+		boss.boss_area_min_y = this.boss_area_min_y;
 
 		this.enemies.push(boss);
+
+		var level_complete_width = 500;
+		var level_complete_height = 350;
+		this.level_complete_dialog = new LevelComplete((this.canvasWidth - level_complete_width) / 2, (this.canvasHeight - level_complete_height) / 2, level_complete_width, level_complete_height);
 	}
 
-	this.generate_town = function() {
+	this.generate_town = function(player) {
+		player.switch_to_town(this.cell_width * 3, this.canvasHeight - player.height - (this.cell_height * 2));
+
+		this.width = 2200;
+		this.height = 1100;
+
+		this.town = true;
 		worldParts = [];
 
-		//background
-		var lastX = 0;
+		//Generate dome
+		var dome_images = [];
+		var dome_next_x = 0;
+		var dome_next_y = 0;
+		var dome_x_reset = false;
 
-		for(var i = 0; i < this.width; i += 50) {
-			bkg = {};
-			bkg['x'] = lastX;
-			bkg['y'] = 0;
+		dome_images.push('img/town-dome1.png');
+		dome_images.push('img/town-dome2.png');
+		dome_images.push('img/town-dome3.png');
+		dome_images.push('img/town-dome4.png');
+		dome_images.push('img/town-dome5.png');
 
-			bkg['height'] = 50;
-			bkg['width'] = 50;
+		for(var i = 0; i <= this.width; i += this.cell_width) {
+			for(var j = 0; j <= this.height; j += this.cell_height) {
+				//Water top
+				if(j == 0) {
+					bkg = {};
+					bkg['x'] = i;
+					bkg['y'] = j;
 
-			bkg['collision'] = true;
+					bkg['height'] = this.cell_height;
+					bkg['width'] = this.cell_width;
 
-			bkg['image'] = new Image();
-			bkg['image'].src = 'img/water-top.jpg';
+					bkg['collision'] = true;
 
-			this.images.push(bkg);
-			lastX += 50;
-		}
+					bkg['image'] = new Image();
+					bkg['image'].src = 'img/water-top.jpg';
 
-		var lastX = 0;
-		var lastY = 50;
+					this.images.push(bkg);
+				} else if(j == this.height - this.cell_height) {
+					if(!i) {
+						bkg = {};
+						bkg['x'] = i;
+						bkg['y'] = j;
 
-		for(var i = 0; i < this.width; i += 50) {
-			for(var x = 0; x < this.height - 50; x += 50) {
-				bkg = {};
-				bkg['x'] = lastX;
-				bkg['y'] = lastY;
+						bkg['height'] = this.cell_height;
+						bkg['width'] = this.cell_width;
 
-				bkg['height'] = 50;
-				bkg['width'] = 50;
+						bkg['collision'] = true;
+						
+						bkg['image'] = new Image();
+						bkg['image'].src = 'img/sand.jpg';
+					} else if(i == this.width - this.cell_height) {
+						bkg = {};
+						bkg['x'] = i;
+						bkg['y'] = j;
 
-				bkg['image'] = new Image();
-				bkg['image'].src = 'img/water.jpg';
+						bkg['height'] = this.cell_height;
+						bkg['width'] = this.cell_width;
 
-				this.images.push(bkg);
+						bkg['collision'] = true;
+						
+						bkg['image'] = new Image();
+						bkg['image'].src = 'img/sand.jpg';
+					} else {
+						bkg = {};
+						bkg['x'] = i;
+						bkg['y'] = j;
 
-				lastY += 50;
+						bkg['height'] = this.cell_height;
+						bkg['width'] = this.cell_width;
+
+						bkg['collision'] = true;
+
+						floor_images = [];
+
+						for(var k = 1; k <= 7; k++) {
+							floor_images.push('img/town-floor-cement-' + k + '.png');	
+						}
+
+						var rng = this.util.random(floor_images.length);
+						
+						bkg['image'] = new Image();
+						bkg['image'].src = floor_images[rng - 1];
+					}
+
+					this.images.push(bkg);
+				} else {
+					if(!i) {
+						bkg = {};
+						bkg['x'] = i;
+						bkg['y'] = j;
+
+						bkg['height'] = this.cell_height;
+						bkg['width'] = this.cell_width;
+
+						bkg['collision'] = false;
+
+						bkg['image'] = new Image();
+						bkg['image'].src = 'img/water.jpg';
+
+						this.images.push(bkg);
+					} else if(i == this.cell_width || i == this.width - (this.cell_width * 2)) {
+						if(j >= this.height - (this.cell_height * 8)) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							if(j < dome_next_y + this.cell_height || !dome_next_y) {
+								if(i == this.cell_width) {
+									dome_next_y = j - this.cell_height;
+								} else if(i == this.width - (this.cell_width * 2)) {
+									dome_next_y = j + this.cell_height;
+								}
+								
+							}
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						}
+					} else if(i == this.cell_width * 2) {
+						if(j <= dome_next_y && j > dome_next_y - 150) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							if(j == dome_next_y) {
+								dome_next_y = j - this.cell_height * 3;
+							}
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					} else if(i == this.cell_width * 3) {
+						if(j <= dome_next_y && j > dome_next_y - 150) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							if(j == dome_next_y) {
+								dome_next_y = j - this.cell_height * 3;
+							}
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					} else if(i == this.cell_width * 4) {
+						if(j <= dome_next_y && j > dome_next_y - 150) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							if(j == dome_next_y) {
+								dome_next_y = j - this.cell_height * 3;
+							}
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					} else if(i == this.cell_width * 5) {
+						if(j == dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							dome_next_y = j - this.cell_height;
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					} else if(i == this.cell_width * 6) {
+						if(j == dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							dome_next_y = j - this.cell_height;
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					} else if(i == this.cell_width * 7) {
+						if(j == dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							dome_next_y = j - this.cell_height;
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						}  else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					} else if(i >= this.cell_width * 8 && i <= this.cell_width * 34) {
+						if(j == dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							//dome_next_y = j - this.cell_height;
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+						}
+
+						this.images.push(bkg);
+					} else if(i == this.width - (this.cell_width * 9)) {
+						dome_next_y = this.height  - (this.cell_height * 21);
+						if(j == dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							dome_next_y = j - this.cell_height;
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					} else if(i == this.width - (this.cell_width * 8)) {
+						dome_next_y = this.height  - (this.cell_height * 20);
+						if(j == dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							dome_next_y = j - this.cell_height;
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					} else if(i == this.width - (this.cell_width * 7)) {
+						dome_next_y = this.height  - (this.cell_height * 19);
+						if(j == dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							dome_next_y = j - this.cell_height;
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					} else if(i == this.width - (this.cell_width * 6)) {
+						dome_next_y = this.height  - (this.cell_height * 18);
+						if(j == dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							dome_next_y = j - this.cell_height;
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					} else if(i == this.width - (this.cell_width * 5)) {
+						dome_next_y = this.height  - (this.cell_height * 15);
+						
+						if(j <= dome_next_y && j > dome_next_y - 150) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							if(j == dome_next_y) {
+								dome_next_y = j - this.cell_height * 3;
+							}
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					} else if(i == this.width - (this.cell_width * 4)) {
+						dome_next_y = this.height  - (this.cell_height * 12);
+						
+						if(j <= dome_next_y && j > dome_next_y - 150) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							if(j == dome_next_y) {
+								dome_next_y = j - this.cell_height * 3;
+							}
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					} else if(i == this.width - this.cell_width) {
+						if(j < this.height - (this.cell_height - 50)) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sand.jpg';
+						}
+
+						this.images.push(bkg);
+					} else if(i == this.width - (this.cell_width * 3)) {
+						if(!dome_x_reset) {
+							dome_next_y = this.height  - (this.cell_height * 9);
+							dome_x_reset = true;
+						}
+
+						if(j <= dome_next_y && j > dome_next_y - 150) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							if(j == dome_next_y) {
+								dome_next_y = j - this.cell_height * 3;
+							}
+							
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = true;
+
+							var rng = this.util.random(5) - 1;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = dome_images[rng];
+
+							this.images.push(bkg);
+						} else if(j < dome_next_y) {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/water.jpg';
+
+							this.images.push(bkg);
+						} else {
+							bkg = {};
+							bkg['x'] = i;
+							bkg['y'] = j;
+
+							bkg['height'] = this.cell_height;
+							bkg['width'] = this.cell_width;
+
+							bkg['collision'] = false;
+
+							bkg['image'] = new Image();
+							bkg['image'].src = 'img/sky-plain.png';
+
+							this.images.push(bkg);
+						}
+					}
+				}
 			}
-			lastY = 50;
-			lastX += 50;
 		}
 
-		//Ground
-		var lastX = 0;
+		max_y = false;
+		max_y_index = 0;
 
-		for(var i = 0; i < this.width / 50; i++) {
-			var sand = {};
-			sand['x'] = lastX;
-			sand['y'] = this.height - 50;
-
-			sand['height'] = 50;
-			sand['width'] = 50;
-
-			sand['collision'] = true;
-
-			sand['image'] = new Image();
-			sand['image'].src = 'img/sand.jpg';
-
-			this.images.push(sand);
-			lastX += 50;
-		}
-
-		//Weed
-		var prevX = 1;
-
-		for(var i = 0; i < 6; i++) {
-			if(prevX == 1) {
-				var sand = {}
-				sand['x'] = 220;
-				sand['y'] = this.height - 110;
-				sand['height'] = 100;
-				sand['width'] = 10;
-				sand['image'] = new Image();
-				sand['image'].src = 'img/weed.png';
-
-				this.images.push(sand);
-				prevX++;
-			} else {
-				var sand = {}
-				sand['x'] = prevX + 400;
-				sand['y'] = this.height - 135;
-				sand['height'] = 100;
-				sand['width'] = 10;
-				sand['image'] = new Image();
-				sand['image'].src = 'img/weed.png';
-
-				this.images.push(sand);
-
-				prevX = sand['x'];
+		for(var i = 0; i < this.images.length; i++) {
+			if(this.images[i]['y'] >= max_y || max_y == false) {
+				max_y = this.images[i]['y'];
+				max_y_index = i;
 			}
 		}
 
-		var prevX = 1;
-
-		for(var i = 0; i < 16; i++) {
-			var rng = this.util.random(20)
-			if(prevX == 1) {
-				var sand = {}
-				sand['x'] = 820;
-				sand['y'] = this.height - 115 + rng;
-				sand['height'] = 100;
-				sand['width'] = 10;
-				sand['image'] = new Image();
-				sand['image'].src = 'img/weed.png';
-
-				this.images.push(sand);
-				prevX = sand['x'];
-			} else {
-				var sand = {}
-				sand['x'] = prevX + 11;
-				sand['y'] = this.height - 115 + rng;
-				sand['height'] = 100;
-				sand['width'] = 10;
-				sand['image'] = new Image();
-				sand['image'].src = 'img/weed.png';
-
-				this.images.push(sand);
-
-				prevX = sand['x'];
+		while(this.images[max_y_index]['y'] + this.images[max_y_index]['height'] > this.canvasHeight + this.cell_height) {
+			for(var i = 0; i < this.images.length; i++) {
+				this.images[i]['y'] -= 1;
 			}
+			world.bounty_board.update(0, -1, player);
 		}
 	}
 }
