@@ -54,7 +54,6 @@ var Player = function() {
 
 	this.switch_to_town = function(x, y) {
 		this.in_town = true;
-		console.log(x + " " + y);
 
 		this.x = x;
 		this.y = y;
