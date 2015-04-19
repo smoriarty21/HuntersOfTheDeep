@@ -242,7 +242,7 @@ var Enemy = function() {
 				this.status = 'STILL';
 				this.boss = true;
 
-				this.hp = 1000;
+				this.hp = 10;
 
 				this.x = 0;
 				this.y = 0;
@@ -314,8 +314,7 @@ var Enemy = function() {
 						}
 
 						this.velocity[1] = 0;
-
-						if(this.x + this.width > world.boss_x - world.x - 175) {
+						if(this.x + this.width > world.canvasWidth - (world.cell_width * 2)) {
 							this.status = 'BEAM';
 							this.action_start = false;
 						}
@@ -329,6 +328,12 @@ var Enemy = function() {
 						} else if(this.y > player.y) {
 							this.velocity[1] = -this.speed;
 						}
+					} else if(this.status == 'DEAD') {
+						if(!world.show_world_complete_dialog) {
+							world.show_world_complete_dialog = true;
+						}
+
+						this.y += 1;
 					}
 
 					for(var i = 0; i < world.images.length; i++) {
@@ -340,8 +345,12 @@ var Enemy = function() {
 									this.y += this.speed;
 									this.velocity[1] = this.speed;
 								} else if(collision_check == 'BOTTOM') {
-									this.y -= this.speed;
+									this.y--;
 									this.velocity[1] = -this.speed;
+
+									if(this.status == 'DEAD') {
+										this.velocity = [0, 0];
+									}
 								} else if(collision_check == 'RIGHT') {
 									this.x -= this.speed;
 									this.velocity[0] = -this.speed;
@@ -361,6 +370,12 @@ var Enemy = function() {
 					if(this.status != 'STILL') {
 						this.x += this.velocity[0];
 						this.y += this.velocity[1];
+					}
+
+					if(this.hp <= 0 && this.status != 'DEAD') {
+						player.add_exp(this.base_xp);
+						world.total_dungeon_xp += this.base_xp;
+						this.status = 'DEAD';
 					}
 				}
 

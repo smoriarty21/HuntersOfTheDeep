@@ -133,13 +133,15 @@ function StatsMenu() {
 	this.draw = function(context) {
 		var it = 0;
 
+		context.font = '500 12pt Calibri';
+
 		context.fillStyle = this.color;
 		context.fillRect(this.x, this.y, this.width, this.height);
 		context.fillStyle="#FFFFFF";
 		context.fillText('LEVEL:', (this.x + this.padding), (this.y + this.padding));
 		context.fillText(this.level, (this.x + (this.padding * 4)), (this.y + this.padding));
 
-		it++;
+		it += 1.3;
 
 		context.fillStyle="#FFFFFF";
 		context.fillText('XP:', (this.x + this.padding), (this.y + this.padding) + (this.padding * it));
@@ -261,4 +263,67 @@ function DeathScreen(screen_width, screen_height) {
 	this.draw = function(context) {
 		context.drawImage(this.image, this.x, this.y, this.width, this.height);
 	}
+}
+
+function LevelComplete(x, y, width, height) {
+	this.x = x;
+	this.y = y;
+
+	this.height = height;
+	this.width = width;
+
+	this.padding = 10;
+	this.row_padding = 35;
+
+	this.color = '#FFFFFF';
+
+	this.show = false;
+
+	this.draw = function(context, xp, gold) {
+		if(this.show) {
+			//Borders
+			context.fillStyle = '#000000';
+			context.fillRect(this.x - this.padding, this.y - this.padding, this.width + (this.padding * 2), this.padding); //Top
+			context.fillRect(this.x, this.y + this.height, this.width + this.padding, this.padding); //Bottom
+			context.fillRect(this.x - this.padding, this.y, this.padding, this.height + this.padding); //Left
+			context.fillRect(this.x + this.width, this.y, this.padding, this.height); //Right
+
+			//Background
+			context.fillStyle = this.color;
+			context.fillRect(this.x, this.y, this.width, this.height);
+
+			//Text
+			var it = 1;
+			context.fillStyle="#000000";
+			context.font = '900 30pt Calibri';
+
+			context.fillText('Level Complete!', (this.x + this.padding), (this.y + (this.row_padding * it)));
+
+			it += 1.2;
+			context.font = '500 20pt Calibri';
+			context.fillText('Total Gold: ' + gold, (this.x + this.padding * 2), (this.y + (this.row_padding * it)));
+
+			it++;
+			context.fillText('Total XP: ' + xp, (this.x + this.padding * 2), (this.y + (this.row_padding * it)));
+
+			it += 1.5;
+			context.fillText('Items', (this.x + this.padding * 2), (this.y + (this.row_padding * it)));
+
+			//Return to town button
+			it += 2.5;
+
+			this.btn_x = this.x + ((this.x + this.width - 120) / 2);
+			this.btn_y = (this.y + (this.row_padding * it));
+			this.btn_width = 120;
+			this.btn_height = 60;
+			context.fillStyle = '#000000';
+			context.fillRect(this.btn_x, this.btn_y, this.btn_width, this.btn_height);
+
+			it += 1;
+			context.fillStyle = '#FFFFFF';
+			context.font = '500 20pt Calibri';
+			context.fillText('Town', this.x + this.padding + ((this.x + this.width - 120) / 2), (this.y + (this.row_padding * it)));
+		}
+	}
+
 }

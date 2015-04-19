@@ -2,8 +2,8 @@ function World() {
 	this.x = 0;
 	this.y = 0;
 	this.velocity = [0, 0];
-	this.height = 1200;
-	this.width = 2700;
+	this.height = 1100;
+	this.width = 2500;
 	this.status = 'STILL';
 	this.canvasHeight = 600;
 	this.canvasWidth = 1100;
@@ -26,6 +26,14 @@ function World() {
 	this.boss_area_min_x = -1;
 	this.boss_area_max_y = 0;
 	this.boss_area_min_y = -1;
+
+	//Dungeon Stats
+	this.total_dungeon_xp = 0;
+	this.total_dungeon_gold = 0;
+
+	this.town = false;
+
+	this.show_world_complete_dialog = false;
 
 	this.cell_height = 50;
 	this.cell_width = 50;
@@ -152,6 +160,11 @@ function World() {
 					this.boss_fight = true;
 				}
 			}
+		}
+
+		//Check for completed dungeons
+		if(this.show_world_complete_dialog) {
+			this.level_complete_dialog.show = true;
 		}
 	}
 
@@ -320,7 +333,7 @@ function World() {
 		//Enemies
 		var rng = this.util.random(10);
 
-		for(var i = -40; i < rng; i++) {
+		/*for(var i = -2; i < rng; i++) {
 			this.enemy_generator = new Enemy();
 			var badGuy = this.enemy_generator.generate('SHARK');
 			badGuy.x = this.util.random(this.width - 400) + 400;
@@ -328,7 +341,7 @@ function World() {
 			var  bottom_range = this.height - 300;
 			badGuy.y = this.util.random(bottom_range - 300) + 300;
 			this.enemies.push(badGuy);
-		}
+		}*/
 	
 		player.y = 550;
 		player.setVelocity(0,0);
@@ -345,9 +358,14 @@ function World() {
 		boss.boss_area_min_y = this.boss_area_min_y;
 
 		this.enemies.push(boss);
+
+		var level_complete_width = 500;
+		var level_complete_height = 350;
+		this.level_complete_dialog = new LevelComplete((this.canvasWidth - level_complete_width) / 2, (this.canvasHeight - level_complete_height) / 2, level_complete_width, level_complete_height);
 	}
 
 	this.generate_town = function() {
+		this.town = true;
 		worldParts = [];
 
 		//background

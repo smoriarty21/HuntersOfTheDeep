@@ -130,12 +130,18 @@ function Game() {
 		switch (event.button) {
 	    	case 0: // Shoot
 	    		if(status == 'PLAYING') {
-		    		if(!this.world.bounty_board.menu_open) {
+		    		if(!this.world.bounty_board.menu_open && !world.show_world_complete_dialog) {
 		    			player.shoot();	
 		    		} else if(this.world.bounty_board.menu_open) {
 		    			if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width, this.world.bounty_board.x - 130, this.world.bounty_board.y - 175, 175, 400)) {
 		    				world = new World(player);
 		    				world.generateDungeon(player);
+		    			}
+		    		} else if(world.show_world_complete_dialog) {
+		    			//Return to town button
+		    			if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width,  world.level_complete_dialog.btn_x, world.level_complete_dialog.btn_y, world.level_complete_dialog.btn_height, world.level_complete_dialog.btn_width)) {
+		    				world = new World(player);
+		    				world.generate_town();
 		    			}
 		    		}
 		    	} else if(status == 'TITLE') {
@@ -183,6 +189,13 @@ function Game() {
 			world.draw(context, player.x);
 			player.draw(context);
 			ui.draw(context);
+
+			if(!world.town) {
+				if(world.level_complete_dialog.show) {
+					world.level_complete_dialog.draw(context, world.total_dungeon_xp, world.total_dungeon_gold);
+				}
+			}
+
 			crosshair.draw(context);
 		} else if(status == 'TITLE') {
 			title.draw(context);
