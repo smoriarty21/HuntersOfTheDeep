@@ -72,3 +72,43 @@ var BountyBoard = function(world) {
 		}
 	}
 }
+
+var ItemShop = function(world) {
+	this.height = 250;
+	this.width = 350;
+
+	this.x = 1725;
+	this.y = 600 - (this.height + 52);
+
+	this.action_padding = 10;
+
+	this.image = new Image();
+	this.image.src = 'img/item-shop.png';
+
+	this.draw = function(context) {
+		context.drawImage(this.image, this.x, this.y, this.width, this.height);
+
+		context.font = '500 14pt Calibri';
+
+		if(this.player_in_range && !this.menu_open) {
+			context.fillStyle="#FFFFFF";
+			context.fillText('Press E Key', this.x + 5, this.y - 15);
+		}
+	}
+
+	this.update = function(world) {
+		this.player_in_range = this.checkPlayerInRange(player.x, player.y, player.height, player.width, this.x - this.action_padding, this.y - this.action_padding, this.height + (this.action_padding * 2), this.width + (this.action_padding * 2));
+
+		this.x += world.velocity[0];
+		this.y += world.velocity[1];
+
+	}
+
+	this.checkPlayerInRange = function(x1, y1, h1, w1, x2, y2, h2, w2) {
+		if(x2 + w2 > x1 && x2 < x1 + w1 && y2 + h2 > y1 && y2 < y1 + h1) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+}
