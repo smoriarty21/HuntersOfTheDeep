@@ -242,7 +242,7 @@ var Enemy = function() {
 				this.status = 'STILL';
 				this.boss = true;
 
-				this.hp = 10;
+				this.hp = 600;
 
 				this.x = 0;
 				this.y = 0;
