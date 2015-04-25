@@ -140,7 +140,7 @@ function World() {
 
 		//Town
 		this.bounty_board.update(this.velocity[0], this.velocity[1], player);
-		this.item_shop.update(this);
+		//this.item_shop.update(this);
 
 		//Enemies
 		for(var i = 0; i < this.enemies.length; i++) {

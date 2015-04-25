@@ -61,6 +61,8 @@ var BountyBoard = function(world) {
 			context.fillText(this.current_bounties[0]['boss'], this.x  - 118, this.y - 135);
 			context.fillText(this.current_bounties[0]['desc'], this.x - 50, this.y - 135);
 			context.fillText(this.current_bounties[0]['xp'] + 'XP', this.x + 80 , this.y - 135);
+
+			context.fillText('Click A Dungeon', this.x  + 20, this.y - 10);
 		}
 	}
 
