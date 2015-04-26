@@ -16,10 +16,12 @@
 
 ###Action
 * RMB = Fire Primary Weapon
+* LMB = Equip item from inventory
 
 ###Interface
 * Q = Open Stats Menu
 * ~ = Show FPS
+* I = Open Inventory
 
 ###Interaction
 * E = Action Button
