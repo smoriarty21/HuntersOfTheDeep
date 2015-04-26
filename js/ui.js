@@ -10,12 +10,14 @@ function UI() {
 	this.stats_menu_open = false;
 
 	this.hpbar = new HpBar();
+	this.xp_bar = new XpBar(this.width, this.height);
 
 	this.stats = new StatsMenu();
 
 	this.update = function(hp, player) {
 		this.hpbar.update(hp);
 		this.stats.update(player);
+		this.xp_bar.update(player.xp, player.xp_for_next_level);
 
 		if(this.show_fps) {
 			this.thisLoop = new Date;
@@ -38,9 +40,11 @@ function UI() {
 		if(this.show_fps) {
 			context.font="900 20px Arial";
 			context.fillStyle="#FF0000";
-			context.fillText(Math.round(this.fps), 5, this.height - 5);
+			context.fillText(Math.round(this.fps), 5, this.height - 15);
 			context.font="10px Arial";
 		}
+
+		this.xp_bar.draw(context);
 	}
 }
 
@@ -67,6 +71,34 @@ function HpBar() {
 			this.width = (hp * 2) - 10;	
 		}
 	}
+}
+
+function XpBar(screen_width, screen_height) {
+	this.width = 0;
+	this.height = 10;
+
+	this.x = 2;
+	this.y = screen_height - this.height + 2;
+
+	this.wrapper_height = 4;
+	this.wrapper_width = screen_width;
+
+	this.color = '#54C571';
+
+ 	this.wrapper_x = 0;
+ 	this.wrapper_y = screen_height - this.height;
+
+ 	this.update = function(player_xp, next_level_xp) {
+ 		this.width = (player_xp * this.wrapper_width) / next_level_xp; 
+ 	}
+
+ 	this.draw = function(context) {
+ 		context.fillStyle = '#2C3539';
+ 		context.fillRect(this.wrapper_x, this.wrapper_y, this.wrapper_width, screen_height + this.wrapper_height);
+
+ 		context.fillStyle = this.color;
+		context.fillRect(this.x, this.y, this.width, this.height);
+ 	}
 }
 
 function MouseCursor() {
