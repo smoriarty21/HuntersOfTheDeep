@@ -46,6 +46,31 @@ var Player = function() {
 	this.weapon = new Weapon();
 	this.wep = this.weapon.generate('NORMAL');
 
+	//Inventory
+	this.inventory = new Inventory(this.img);
+	this.inventory_open = false;
+	this.inventory_items = [];
+	this.equipped = [];
+	this.max_inventory_size = 12;
+
+	this.inventory_items.push(new ArmorGenerator('BASIC_HEAD'));
+	this.inventory_items.push(new ArmorGenerator('BASIC_CHEST'));
+
+	//Place items in inventory
+	for(var i = 0; i < this.inventory_items.length; i++) {
+		for(var j = 0; j < this.inventory.inventory_ui.length; j++) {
+			if(this.inventory.inventory_ui[j].open && this.inventory.inventory_ui[j].type == 'SLOT') {
+				this.inventory_items[i].x = this.inventory.inventory_ui[j].x + 5;
+				this.inventory_items[i].y = this.inventory.inventory_ui[j].y + 5;
+				this.inventory.inventory_ui[j].item_index = i;
+
+				this.inventory.inventory_ui[j].open = false;
+
+				break;
+			}
+		}
+	}
+
 	//Bounties
 	this.bounty = new Bounty();
 	this.current_bounties = [];
@@ -69,6 +94,11 @@ var Player = function() {
 			}
 
 			context.drawImage(this.img, this.x, this.y, this.width, this.height);
+
+			//Inventory
+			if(this.inventory_open) {
+				this.inventory.draw(context, this.inventory_items);
+			}
 		}
 	}
 
@@ -182,7 +212,6 @@ var Player = function() {
 			for(var i = 0; i < this.bullets.length; i++) {	
 				context.fillRect(this.bullets[i]['x'], this.bullets[i]['y'], this.bullets[i]['width'], this.bullets[i]['height']);
 			}
-
 		}
 	}
 
@@ -396,6 +425,14 @@ var Player = function() {
 			}
 		} else {
 			return false;
+		}
+	}
+
+	this.check_inventory_full = function() {
+		if(this.inventory.length < this.max_inventory_size) {
+			return false;
+		} else {
+			return true;
 		}
 	}
 }

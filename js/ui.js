@@ -327,3 +327,137 @@ function LevelComplete(x, y, width, height) {
 	}
 
 }
+
+function Inventory(player_image) {
+	this.inventory_parts = {};
+	this.inventory_ui = [];
+	this.inventory = [];
+
+	this.top_row_y = 70;
+	this.top_row_start_x = 500;
+	this.top_row_spacing = 75;
+
+	this.portrait_width = 100;
+	this.portrait_height = 175;
+
+	this.gear_height = 50;
+	this.gear_width = 50;
+	this.gear_spacing = 15;
+
+	this.armor_y = this.top_row_y +  this.gear_height + this.gear_spacing;
+	this.armor_height = this.portrait_height - this.gear_height - this.gear_spacing;
+	this.armor_x = this.portrait_width + this.top_row_start_x + this.top_row_spacing;
+
+	this.padding = 5;
+
+	this.inventory_slot_width = 50;
+	this.inventory_slot_height = 50;
+	this.inventory_slot_spacing = 30;
+	this.inventory_rows = 3;
+	this.inventory_columns = 4;
+
+	this.inventory_bkg_y = this.top_row_y - this.gear_spacing;
+	this.inventory_bkg_x = this.top_row_start_x - this.gear_spacing;
+	this.inventory_bkg_width = 320;
+	this.inventory_bkg_height = 450;
+
+	this.color = '#FFFFFF';
+
+	//Char portrait
+	this.inventory_parts['inv'] = {};
+	this.inventory_parts['inv'].height = this.portrait_height;
+	this.inventory_parts['inv'].width = this.portrait_width;
+	this.inventory_parts['inv'].x = this.top_row_start_x;
+	this.inventory_parts['inv'].y = this.top_row_y;
+	this.inventory_parts['inv'].type = 'PORTRAIT';
+	this.inventory_parts['inv'].open = true;
+
+	this.inventory_ui.push(this.inventory_parts['inv']);
+
+	//Head Gear
+	this.inventory_parts['inv'] = {};
+	this.inventory_parts['inv'].height = this.gear_height;
+	this.inventory_parts['inv'].width = this.gear_width;
+	this.inventory_parts['inv'].x = this.portrait_width + this.top_row_start_x + this.top_row_spacing;
+	this.inventory_parts['inv'].y = this.top_row_y;
+	this.inventory_parts['inv'].type = 'HEAD';
+	this.inventory_parts['inv'].open = true;
+	this.inventory_parts['inv'].item_index = 0;
+
+	this.inventory_ui.push(this.inventory_parts['inv']);
+
+	//Chest Armor
+	this.inventory_parts['inv'] = {};
+	this.inventory_parts['inv'].height = this.armor_height;
+	this.inventory_parts['inv'].width = this.gear_width;
+	this.inventory_parts['inv'].x = this.armor_x;
+	this.inventory_parts['inv'].y = this.armor_y;
+	this.inventory_parts['inv'].type = 'CHEST';
+	this.inventory_parts['inv'].open = true;
+	this.inventory_parts['inv'].item_index = 0;
+
+	this.inventory_ui.push(this.inventory_parts['inv']);
+
+	//Weapon
+	this.inventory_parts['inv'] = {};
+	this.inventory_parts['inv'].height = this.gear_height;
+	this.inventory_parts['inv'].width = this.gear_width;
+	this.inventory_parts['inv'].x = this.armor_x + this.gear_width + this.gear_spacing;
+	this.inventory_parts['inv'].y = this.armor_y + this.gear_spacing;
+	this.inventory_parts['inv'].type = 'WEAPON';
+	this.inventory_parts['inv'].open = true;
+	this.inventory_parts['inv'].item_index = 0;
+
+	this.inventory_ui.push(this.inventory_parts['inv']);
+
+	//Item slots
+	for(var i = 0; i < this.inventory_columns; i++) {
+		for(var j = 0; j < this.inventory_rows; j++) {
+			this.inventory_parts['inv'] = {};
+			this.inventory_parts['inv'].height = this.inventory_slot_height;
+			this.inventory_parts['inv'].width = this.inventory_slot_width;
+			this.inventory_parts['inv'].x = (this.top_row_start_x) + (this.inventory_slot_spacing * i) + (this.inventory_slot_width * i);
+			
+			this.inventory_parts['inv'].y = this.armor_y + this.inventory_slot_spacing + this.armor_height + (this.inventory_slot_spacing * j) + (this.inventory_slot_height * j);
+			this.inventory_parts['inv'].type = 'SLOT';
+			this.inventory_parts['inv'].open = true;
+			this.inventory_parts['inv'].item_index = 0;
+
+			this.inventory_ui.push(this.inventory_parts['inv']);
+		}
+	}
+
+	this.draw = function(context, player_items) {
+		//Inventory Wrapper || Borders
+		context.fillStyle = '#000000';
+		context.fillRect(this.inventory_bkg_x - this.padding, this.inventory_bkg_y - this.padding, this.inventory_bkg_width + (this.padding * 2), this.padding); //Top
+		context.fillRect(this.inventory_bkg_x, this.inventory_bkg_y + this.inventory_bkg_height, this.inventory_bkg_width + this.padding, this.padding); //Bottom
+		context.fillRect(this.inventory_bkg_x - this.padding, this.inventory_bkg_y, this.padding, this.inventory_bkg_height + this.padding); //Left
+		context.fillRect(this.inventory_bkg_x + this.inventory_bkg_width, this.inventory_bkg_y, this.padding, this.inventory_bkg_height); //Right
+
+		//Background
+		context.fillStyle = '#2C3539';
+		context.fillRect(this.inventory_bkg_x, this.inventory_bkg_y, this.inventory_bkg_width, this.inventory_bkg_height);
+
+		for(var i = 0; i < this.inventory_ui.length; i++) {
+			//Borders
+			context.fillStyle = '#000000';
+			context.fillRect(this.inventory_ui[i].x - this.padding, this.inventory_ui[i].y - this.padding, this.inventory_ui[i].width + (this.padding * 2), this.padding); //Top
+			context.fillRect(this.inventory_ui[i].x, this.inventory_ui[i].y + this.inventory_ui[i].height, this.inventory_ui[i].width + this.padding, this.padding); //Bottom
+			context.fillRect(this.inventory_ui[i].x - this.padding, this.inventory_ui[i].y, this.padding, this.inventory_ui[i].height + this.padding); //Left
+			context.fillRect(this.inventory_ui[i].x + this.inventory_ui[i].width, this.inventory_ui[i].y, this.padding, this.inventory_ui[i].height); //Right
+
+			//Background
+			context.fillStyle = this.color;
+			context.fillRect(this.inventory_ui[i].x, this.inventory_ui[i].y, this.inventory_ui[i].width, this.inventory_ui[i].height);
+		}
+
+		//Portrait
+		context.drawImage(player_image, this.top_row_start_x + (this.gear_spacing / 2), this.top_row_y + (this.gear_spacing / 2), this.portrait_width - this.gear_spacing, this.portrait_height - this.gear_spacing);
+
+		//Items
+		for(var i = 0; i < player_items.length; i++) {
+			context.drawImage(player_items[i].image, player_items[i].x, player_items[i].y, player_items[i].width, player_items[i].height)
+		}
+	}
+}
