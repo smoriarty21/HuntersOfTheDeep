@@ -55,6 +55,7 @@ var Player = function() {
 
 	this.inventory_items.push(new ArmorGenerator('BASIC_HEAD'));
 	this.inventory_items.push(new ArmorGenerator('BASIC_CHEST'));
+	this.inventory_items.push(this.weapon.generate('BASIC_PISTOL'));
 
 	//Place items in inventory
 	for(var i = 0; i < this.inventory_items.length; i++) {
@@ -107,6 +108,8 @@ var Player = function() {
 
 		this.height = 30;
 		this.width = 100;
+		
+		this.wep = this.weapon.generate('NORMAL');
 
 		this.update = function(enemies, world) {
 			//Bounties

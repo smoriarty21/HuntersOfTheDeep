@@ -5,7 +5,8 @@ function Game() {
 	width = 1100;
 	height = 600;
 
-	var status = 'PLAYING';
+	//var status = 'PLAYING';
+	var status = 'START';
 
 	this.snap_y = false;
 	this.snap_x = false;
@@ -19,7 +20,7 @@ function Game() {
 	sofa_king = new StudioCred(this.height, this.width);
 
 	world = new World();
-	world.generate_town(player);
+	//world.generate_town(player);
 
 	this.stats_menu_open = false;
 	
@@ -74,6 +75,13 @@ function Game() {
 
 	    	case 69: //Action Key
 	    		this.world.bounty_board.action_key_hit = true;
+
+	    		if(world.item_shop.menu_open) {
+	    			world.item_shop.menu_open = false;
+	    		} else {
+	    			world.item_shop.menu_open = true;
+	    		}
+
 	    		break;
 
 	    	case 192: //Dev Console
@@ -235,8 +243,28 @@ function Game() {
 	    									return 0;
 	    								}
 	    							}
+	    						} else if(player.inventory_items[index].type == 'WEAPON') {
+	    							for(var j = 0; j < player.inventory.inventory_ui.length; j++) {
+	    								if(player.inventory.inventory_ui[j].type == 'WEAPON') {
+	    									var index = player.inventory.inventory_ui[i].item_index;
+	    									player.inventory_items[index].x = player.inventory.inventory_ui[j].x - 5;
+	    									player.inventory_items[index].y = player.inventory.inventory_ui[j].y + 5;
+
+	    									player.inventory_items[index].height = player.inventory.inventory_ui[j].height - 5;
+	    									player.inventory_items[index].width = player.inventory.inventory_ui[j].width + 10;
+
+	    									player.weapon_dmg_bonus += player.inventory_items[index].damage;
+
+	    									player.inventory.inventory_ui[j].item_index = index;
+
+	    									player.inventory.inventory_ui[j].open = false;
+	    									player.inventory.inventory_ui[i].open = true;
+
+	    									return 0;
+	    								}
+	    							}
 	    						}
-	    					} else if(player.inventory.inventory_ui[i].type == 'CHEST' || player.inventory.inventory_ui[i].type == 'HEAD' && !player.inventory.inventory_ui[i].open) {
+	    					} else if(player.inventory.inventory_ui[i].type == 'CHEST' || player.inventory.inventory_ui[i].type == 'HEAD' || player.inventory.inventory_ui[i].type == 'WEAPON' && !player.inventory.inventory_ui[i].open) {
 	    						for(var k = 0; k < player.inventory.inventory_ui.length; k++) {
 	    							if(player.inventory.inventory_ui[k].open && player.inventory.inventory_ui[k].type == 'SLOT') {
 	    								var index = player.inventory.inventory_ui[i].item_index;
@@ -248,7 +276,11 @@ function Game() {
 
 	    								player.inventory.inventory_ui[k].item_index = index;
 
-	    								player.hp_bonus -= player.inventory_items[index].armor_bonus;
+	    								if(player.inventory.inventory_ui[i].type == 'WEAPON') {
+	    									player.weapon_dmg_bonus -= player.inventory_items[index].damage;
+	    								} else {
+	    									player.hp_bonus -= player.inventory_items[index].armor_bonus;
+	    								}
 
 	    								player.inventory.inventory_ui[k].open = false;
 	    								player.inventory.inventory_ui[i].open = true;

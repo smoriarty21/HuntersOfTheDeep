@@ -185,7 +185,7 @@ function World() {
 
 		//Town
 		if(this.town) {
-			this.item_shop.draw(context);
+			this.item_shop.draw(context, this.canvasWidth, this.canvasHeight);
 			this.bounty_board.draw(context);
 		}
 
