@@ -42,7 +42,7 @@ function World() {
 	this.enemy_generator = new Enemy();
 
 	//Town
-	this.bounty_board = new BountyBoard(this);
+	//this.bounty_board = new BountyBoard(this);
 
 	this.update = function(player) {
 		this.setVelocity(0,0);
@@ -139,8 +139,10 @@ function World() {
 		this.y += this.velocity[1];
 
 		//Town
-		this.bounty_board.update(this.velocity[0], this.velocity[1], player);
-		//this.item_shop.update(this);
+		if(player.in_town) {
+			this.bounty_board.update(this.velocity[0], this.velocity[1], player);
+			this.item_shop.update(this);
+		}
 
 		//Enemies
 		for(var i = 0; i < this.enemies.length; i++) {
@@ -378,6 +380,7 @@ function World() {
 
 	this.generate_town = function(player) {
 		this.item_shop = new ItemShop(this);
+		this.bounty_board = new BountyBoard(this);
 
 		player.switch_to_town(this.cell_width * 3, this.canvasHeight - player.height - (this.cell_height * 2));
 

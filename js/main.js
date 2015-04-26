@@ -83,6 +83,14 @@ function Game() {
 	    			ui.show_fps = false;
 	    		}
 	    		break;
+
+	    	case 73: //Inventory
+		    	if(!player.inventory_open) {
+		    			player.inventory_open = true;
+	    		} else {
+	    			player.inventory_open = false;
+	    		}
+	    		break;
 	    }
 	}, false);
 
@@ -130,20 +138,44 @@ function Game() {
 		switch (event.button) {
 	    	case 0: // Shoot
 	    		if(status == 'PLAYING') {
-		    		if(!this.world.bounty_board.menu_open && !world.show_world_complete_dialog) {
+		    		if(!world.show_world_complete_dialog) {
 		    			player.shoot();	
-		    		} else if(this.world.bounty_board.menu_open) {
-		    			if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width, this.world.bounty_board.x - 130, this.world.bounty_board.y - 175, 175, 400)) {
-		    				world = new World(player);
-		    				world.generateDungeon(player);
-		    			}
-		    		} else if(world.show_world_complete_dialog) {
+		    		} 
+
+		    		if(player.in_town) {
+			    		if(this.world.bounty_board.menu_open) {
+			    			if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width, this.world.bounty_board.x - 130, this.world.bounty_board.y - 175, 175, 400)) {
+			    				world = new World(player);
+			    				world.generateDungeon(player);
+			    			}
+			    		}
+			    	}
+
+		    		if(world.show_world_complete_dialog) {
 		    			//Return to town button
 		    			if(crosshair.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width,  world.level_complete_dialog.btn_x, world.level_complete_dialog.btn_y, world.level_complete_dialog.btn_height, world.level_complete_dialog.btn_width)) {
 		    				player.hp = player.max_hp;
 
 		    				world = new World(player);
 		    				world.generate_town(player);
+		    			}
+		    		}
+
+		    		//Inventory
+		    		if(player.inventory_open) {
+		    			for(var i = 0; i < player.inventory.inventory_ui.length; i++) {
+		    				var collision = player.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width, player.inventory.inventory_ui[i].x, player.inventory.inventory_ui[i].y, player.inventory.inventory_ui[i].height, player.inventory.inventory_ui[i].width);
+		    				if(collision) {
+		    					if(player.inventory.inventory_ui[i].type == 'SLOT') {
+		    						//	
+		    					} else if(player.inventory.inventory_ui[i].type == 'HEAD') {
+		    						//
+		    					} else if(player.inventory.inventory_ui[i].type == 'CHEST') {
+		    						//
+		    					} else if(player.inventory.inventory_ui[i].type == 'WEAPON') {
+		    						//
+		    					}
+		    				}
 		    			}
 		    		}
 		    	} else if(status == 'TITLE') {
@@ -157,6 +189,78 @@ function Game() {
 	    		break;
 
 	    	case 2:
+	    		if(player.inventory_open) {
+	    			for(var i = 0; i < player.inventory.inventory_ui.length; i++) {
+		    			var collision = player.checkCollision(crosshair.x, crosshair.y , crosshair.height, crosshair.width, player.inventory.inventory_ui[i].x, player.inventory.inventory_ui[i].y, player.inventory.inventory_ui[i].height, player.inventory.inventory_ui[i].width);
+	    				if(collision) {
+	    					if(player.inventory.inventory_ui[i].type == 'SLOT' && !player.inventory.inventory_ui[i].open) {
+	    						var index = player.inventory.inventory_ui[i].item_index;
+	    						if(player.inventory_items[index].type == 'HEAD') {
+	    							for(var j = 0; j < player.inventory.inventory_ui.length; j++) {
+	    								if(player.inventory.inventory_ui[j].type == 'HEAD') {
+	    									var index = player.inventory.inventory_ui[i].item_index;
+
+	    									player.inventory_items[index].x = player.inventory.inventory_ui[j].x + 5;
+	    									player.inventory_items[index].y = player.inventory.inventory_ui[j].y + 5;
+
+	    									player.hp_bonus += player.inventory_items[index].armor_bonus;
+
+	    									player.inventory.inventory_ui[j].item_index = index;
+
+	    									player.inventory.inventory_ui[j].open = false;
+	    									player.inventory.inventory_ui[i].open = true;
+
+	    									return 0;
+	    								}
+	    							}
+	    						} else if(player.inventory_items[index].type == 'CHEST') {
+	    							//var index = player.inventory.inventory_ui[i].item_index;
+
+	    							for(var j = 0; j < player.inventory.inventory_ui.length; j++) {
+	    								if(player.inventory.inventory_ui[j].type == 'CHEST') {
+	    									var index = player.inventory.inventory_ui[i].item_index;
+	    									player.inventory_items[index].x = player.inventory.inventory_ui[j].x - 5;
+	    									player.inventory_items[index].y = player.inventory.inventory_ui[j].y + 5;
+
+	    									player.inventory_items[index].height = player.inventory.inventory_ui[j].height - 5;
+	    									player.inventory_items[index].width = player.inventory.inventory_ui[j].width + 10;
+
+	    									player.hp_bonus += player.inventory_items[index].armor_bonus;
+
+	    									player.inventory.inventory_ui[j].item_index = index;
+
+	    									player.inventory.inventory_ui[j].open = false;
+	    									player.inventory.inventory_ui[i].open = true;
+
+	    									return 0;
+	    								}
+	    							}
+	    						}
+	    					} else if(player.inventory.inventory_ui[i].type == 'CHEST' || player.inventory.inventory_ui[i].type == 'HEAD' && !player.inventory.inventory_ui[i].open) {
+	    						for(var k = 0; k < player.inventory.inventory_ui.length; k++) {
+	    							if(player.inventory.inventory_ui[k].open && player.inventory.inventory_ui[k].type == 'SLOT') {
+	    								var index = player.inventory.inventory_ui[i].item_index;
+	    								player.inventory_items[index].x = player.inventory.inventory_ui[k].x + 5;
+	    								player.inventory_items[index].y = player.inventory.inventory_ui[k].y + 5;
+
+	    								player.inventory_items[index].height = player.inventory.inventory_ui[k].height - 10;
+	    								player.inventory_items[index].width = player.inventory.inventory_ui[k].width - 10;
+
+	    								player.inventory.inventory_ui[k].item_index = index;
+
+	    								player.hp_bonus -= player.inventory_items[index].armor_bonus;
+
+	    								player.inventory.inventory_ui[k].open = false;
+	    								player.inventory.inventory_ui[i].open = true;
+
+	    								return 0;
+	    							}
+	    						}
+	    					} 
+	    				}
+	    			}
+	    		}
+
 	    		break;
 	    }
 	}, false);
