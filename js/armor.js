@@ -22,7 +22,10 @@ var ArmorGenerator = function(type) {
 			this.image = new Image();
 			this.image.src = 'img/basic-chest.png'
 			this.type = 'CHEST';
-			
+
+			this.height = 50;
+			this.width - 50;
+
 			return this;
 
 			break;
